@@ -1,7 +1,8 @@
-from aiogram import Router
-from src.bot.handlers import buttons_demo
+﻿from aiogram import Router
+from src.bot.handlers import buttons_demo, fsm_demo
 
 def setup_routers(dp):
-    dp.include_router(buttons_demo.router)
-from src.bot.handlers import fsm_demo
-dp.include_router(fsm_demo.router)
+    router = Router()
+    router.include_router(buttons_demo.router)
+    router.include_router(fsm_demo.router)
+    dp.include_router(router)

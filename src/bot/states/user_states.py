@@ -3,3 +3,4 @@
 class UserForm(StatesGroup):
     name = State()
     age = State()
+    email = State()

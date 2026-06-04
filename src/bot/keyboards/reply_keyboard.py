@@ -5,6 +5,7 @@ main_menu = ReplyKeyboardMarkup(
         [KeyboardButton(text="מידע")],
         [KeyboardButton(text="הגדרות")],
         [KeyboardButton(text="עזרה")],
+        [KeyboardButton(text="טופס הרשמה")],
     ],
     resize_keyboard=True
 )

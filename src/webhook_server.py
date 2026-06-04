@@ -1,4 +1,4 @@
-import os
+﻿import os
 import asyncio
 
 from aiogram import Bot, Dispatcher
@@ -6,9 +6,10 @@ from aiogram.types import Update
 from fastapi import FastAPI, Request
 
 from src.router_loader import setup_routers
+from src.bot.db.fsm_storage import storage
 
 bot = Bot(token=os.getenv("BOT_TOKEN"))
-dp = Dispatcher()
+dp = Dispatcher(storage=storage)
 setup_routers(dp)
 
 app = FastAPI()
