@@ -1,9 +1,4 @@
-import json
-from src.queue.client import publish
+from src.billing.hooks import on_event
 
-
-async def emit_event(event_type: str, payload: dict):
-    await publish("events", json.dumps({
-        "type": event_type,
-        "payload": payload
-    }))
+async def emit_event(event_name: str, payload: dict):
+    await on_event(event_name, payload)
