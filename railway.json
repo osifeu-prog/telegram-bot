@@ -1,1 +1,1 @@
-{"deploy":{"startCommand":"python run_bot_clean.py","healthcheckPath":"/health","healthcheckTimeout":30}}
+{"deploy":{"startCommand":"python run_bot_clean.py"}}
