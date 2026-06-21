@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+bot.db
+slh_core.db
+*.db
+logs/
