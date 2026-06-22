@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 import os
 from dotenv import load_dotenv
 
@@ -20,7 +20,7 @@ setup_routers(dp)
 
 async def main():
     print("SLH BOT RUNNING (CLEAN MODE)")
-    if ADMIN_ID:
+    if False and ADMIN_ID:
         try:
             await bot.send_message(
                 chat_id=int(ADMIN_ID),
@@ -41,3 +41,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+
+

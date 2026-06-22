@@ -1,4 +1,4 @@
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+﻿from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import BigInteger, String, Text
 
 class Base(DeclarativeBase):
@@ -11,3 +11,6 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(255))
     age: Mapped[str] = mapped_column(String(50))
     email: Mapped[str] = mapped_column(String(255))
+
+
+

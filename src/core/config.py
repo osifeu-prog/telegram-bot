@@ -1,4 +1,4 @@
-import os
+﻿import os
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
@@ -19,3 +19,6 @@ class Config:
 
 config = Config()
 config.validate()
+
+
+

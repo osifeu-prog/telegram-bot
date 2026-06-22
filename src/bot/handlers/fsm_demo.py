@@ -47,3 +47,7 @@ async def get_email(message: types.Message, state: FSMContext):
         f"הנתונים נשמרו במערכת. תודה!"
     )
     await state.clear()
+
+
+
+

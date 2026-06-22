@@ -1,4 +1,4 @@
-.env
+﻿.env
 __pycache__/
 *.pyc
 *.pyo
@@ -8,3 +8,4 @@ bot.db
 slh_core.db
 *.db
 logs/
+.env

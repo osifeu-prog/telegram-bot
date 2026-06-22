@@ -16,3 +16,7 @@ async def start_handler(message: types.Message):
         "או שתבחר מהתפריט המתקדם:",
         reply_markup=inline_menu
     )
+
+
+
+
