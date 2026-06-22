@@ -8,7 +8,7 @@ if platform.system() == 'Windows':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 load_dotenv(override=True)
-load_dotenv(dotenv_path=r"D:\0\0.1\slh-telegram-bot\.env", override=True)
+load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=TOKEN)
@@ -23,3 +23,6 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         pass
+
+
+
