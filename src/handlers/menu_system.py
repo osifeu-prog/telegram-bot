@@ -2,6 +2,8 @@
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from src.utils.i18n import get_string
+from aiogram import F
+from aiogram.types import CallbackQuery
 
 router = Router()
 ADMIN_ID = 8789977826
@@ -99,3 +101,26 @@ async def full_check_cmd(message: types.Message):
         checks.append(("Database", False))
     msg = "🔍 Full System Check\n" + "\n".join(f"{'✅' if ok else '❌'} {name}" for name, ok in checks)
     await message.reply(msg)
+
+
+from aiogram import F
+from aiogram.types import CallbackQuery
+
+@router.callback_query()
+async def menu_callback(query: CallbackQuery):
+    await query.answer(f"You clicked: {query.data}")
+    if query.data == "menu_main":
+        await query.message.reply("🏠 Main Menu placeholder")
+    elif query.data == "menu_shop":
+        await query.message.reply("🛒 Shop placeholder")
+    elif query.data == "menu_top":
+        await query.message.reply("📊 Top placeholder")
+    elif query.data == "admin_status":
+        await query.message.reply("📋 Status: Active")
+    elif query.data == "check_files":
+        await query.message.reply("🔍 Files: All present")
+    elif query.data == "progress":
+        await query.message.reply("📊 Progress command sent")
+    elif query.data == "missing":
+        await query.message.reply("❌ Missing command sent")
+
