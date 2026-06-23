@@ -65,3 +65,4 @@ async def ask_ai_cmd(message: types.Message):
         except Exception as e:
             await message.answer(f"❌ AI Error: {e}")
 
+
