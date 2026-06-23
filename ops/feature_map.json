@@ -1,0 +1,27 @@
+﻿{
+  "mvp": {
+    "daily_loop": {"handler": "daily.py", "commands": ["daily", "reward", "streak"]},
+    "payments": {"handler": "payments.py", "commands": []},
+    "shop": {"handler": "shop.py", "commands": ["shop", "buy"]},
+    "wallet": {"handler": "wallet.py", "commands": ["wallet", "deposit"]},
+    "mini_app": {"handler": "mini_app_improved.py", "api": "mini_app.py", "static": "index.html"},
+    "profile": {"handler": "profile.py", "commands": ["profile"]}
+  },
+  "v1": {
+    "kyc": {"handler": "kyc.py", "commands": ["kyc"]},
+    "referral": {"handler": "referral.py", "commands": ["referral"]},
+    "governance": {"handler": "governance.py", "commands": ["vote", "governance"]},
+    "groups": {"handler": "groups.py", "commands": ["groups"]},
+    "i18n": {"handler": "language.py", "utils": "i18n.py", "commands": ["language"]},
+    "broadcast": {"handler": "broadcast.py", "commands": ["broadcast"]}
+  },
+  "v2": {
+    "achievements": {"handler": "achievements.py", "commands": ["achievements"]},
+    "ai_pdf": {"handler": "pdf_analyzer.py", "commands": ["pdf"]},
+    "menu_system": {"handler": "menu_system.py", "commands": ["menu", "progress", "missing"]},
+    "teaser": {"handler": "teaser.py", "commands": ["teaser", "daily_quest", "leaderboard", "reveal"]},
+    "ton_testnet": {"handler": "ton_testnet.py", "commands": ["ton_testnet"]},
+    "contacts": {"handler": "contacts.py", "commands": ["contacts"]},
+    "demo": {"handler": "demo.py", "commands": ["demo"]}
+  }
+}
