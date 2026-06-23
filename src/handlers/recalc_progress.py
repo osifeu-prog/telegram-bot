@@ -25,7 +25,7 @@ async def recalc_progress_cmd(message: types.Message):
     handlers_base = base_dir / "src" / "handlers"
 
     try:
-        feature_map = json.loads(feature_map_path.read_text(encoding="utf-8"))
+        feature_map = json.loads(feature_map_path.read_text(encoding="utf-8-sig"))
     except Exception as e:
         await message.answer(f"❌ Cannot read feature_map.json: {e}\nPath: {feature_map_path}")
         return
@@ -62,7 +62,7 @@ async def recalc_progress_cmd(message: types.Message):
         "progress": {k: round(v, 2) for k, v in progress.items()},
         "total_users": total_users
     }
-    status_path.write_text(json.dumps(status, indent=2, ensure_ascii=False), encoding="utf-8")
+    status_path.write_text(json.dumps(status, indent=2, ensure_ascii=False), encoding="utf-8-sig")
 
     await message.answer(
         f"✅ Progress recalculated!\n"
@@ -71,3 +71,4 @@ async def recalc_progress_cmd(message: types.Message):
         f"V2: {progress['v2']*100:.0f}%\n"
         f"Total users: {total_users}"
     )
+

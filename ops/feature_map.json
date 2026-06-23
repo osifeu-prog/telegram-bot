@@ -1,4 +1,4 @@
-﻿{
+{
   "mvp": {
     "daily_loop": {"handler": "daily.py", "commands": ["daily", "reward", "streak"]},
     "payments": {"handler": "payments.py", "commands": []},
