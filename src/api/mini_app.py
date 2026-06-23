@@ -1,7 +1,7 @@
 ﻿from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone, timezone
 from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import User
 from src.bot.bot import bot
@@ -26,7 +26,8 @@ async def get_user(telegram_id: int):
         user = result.scalar_one_or_none()
         if not user:
             return {"coins": 0, "streak": 0, "can_claim": True}
-        can_claim = not user.last_daily or (datetime.utcnow() - user.last_daily) >= timedelta(hours=24)
+        now = datetime.now(timezone.utc)
+        can_claim = not user.last_daily or (now - user.last_daily) >= timedelta(hours=24)
         return {"coins": user.coins, "streak": user.current_streak, "can_claim": can_claim}
 
 @router.get("/api/top")
@@ -38,7 +39,7 @@ async def get_top():
 
 @router.post("/api/daily/claim")
 async def claim_daily(req: ClaimRequest):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.telegram_id == req.telegram_id))
         user = result.scalar_one_or_none()
@@ -84,3 +85,4 @@ async def demo_deposit(req: DemoDepositRequest):
         user.coins += req.amount
         await session.commit()
         return {"success": True, "coins": user.coins}
+
