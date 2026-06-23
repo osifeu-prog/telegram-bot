@@ -1,4 +1,4 @@
-import os
+﻿import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -35,7 +35,6 @@ from src.handlers.ton_testnet import router as ton_testnet_router
 from src.handlers.referral import router as referral_router
 from src.handlers.teaser import router as teaser_router, start_scheduler
 from src.handlers.help import router as help_router
-from src.handlers.recalc_progress import router as recalc_progress_router
 from src.handlers.achievements import router as achievements_router
 from src.handlers.settings_notifications import router as settings_router
 from src.handlers.mini_app_improved import router as mini_app_improved_router
