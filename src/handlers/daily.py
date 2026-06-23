@@ -1,65 +1,50 @@
-﻿from src.handlers.achievements import check_and_award
-from datetime import datetime, timedelta, timezone
-from aiogram import Router, types
+﻿from aiogram import Router, types
 from aiogram.filters import Command
 from sqlalchemy import select
 from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import User
+from src.handlers.achievements import check_and_award
+from datetime import datetime, timezone, timedelta
 
 router = Router()
 
 @router.message(Command("daily"))
-async def daily_reward(message: types.Message):
-    telegram_id = message.from_user.id
-    now = datetime.now(timezone.utc)
+async def daily_cmd(message: types.Message):
+    today = datetime.now(timezone.utc).date()
     async with AsyncSessionLocal() as session:
-        result = await session.execute(select(User).where(User.telegram_id == telegram_id))
+        result = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
         user = result.scalar_one_or_none()
-        if user is None:
-            user = User(telegram_id=telegram_id, coins=0, current_streak=0)
+        if not user:
+            user = User(telegram_id=message.from_user.id, coins=0, current_streak=0)
             session.add(user)
-            await session.commit()
-        await check_and_award(message.from_user.id, trigger='daily')
-        if user.last_daily and now - user.last_daily < timedelta(hours=24):
-            next_time = user.last_daily + timedelta(hours=24)
-            await message.answer(f"â³ Already claimed today. Try again after {next_time.strftime('%H:%M')}.")
+        if user.last_daily and user.last_daily.date() == today:
+            await message.answer("✅ Already claimed today's reward. Come back tomorrow!")
             return
-        if user.last_daily and now - user.last_daily < timedelta(hours=48):
+        user.coins += 10
+        if user.last_daily and user.last_daily.date() == today - timedelta(days=1):
             user.current_streak += 1
         else:
             user.current_streak = 1
-        streak_bonus = min(user.current_streak * 2, 40)
-        reward = 10 + streak_bonus
-        user.coins += reward
-        user.last_daily = now
+        user.last_daily = datetime.now(timezone.utc)
         await session.commit()
         await check_and_award(message.from_user.id, trigger='daily')
         await message.answer(
-            f"ðŸŽ Daily reward!\n+{reward} coins\nðŸ”¥ Streak: {user.current_streak} days\nðŸ’° Balance: {user.coins} coins"
+            f"✅ Daily reward claimed! +10 Shards\n"
+            f"🔥 Streak: {user.current_streak} days\n"
+            f"💰 Total Shards: {user.coins}"
         )
 
-@router.message(Command("balance"))
-async def balance_cmd(message: types.Message):
-    telegram_id = message.from_user.id
+@router.message(Command("reward"))
+async def reward_cmd(message: types.Message):
+    # simple alias for daily
+    await daily_cmd(message)
+
+@router.message(Command("streak"))
+async def streak_cmd(message: types.Message):
     async with AsyncSessionLocal() as session:
-        result = await session.execute(select(User).where(User.telegram_id == telegram_id))
+        result = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
         user = result.scalar_one_or_none()
-        if user:
-            await message.answer(f"ðŸ’° {user.coins} coins | ðŸ”¥ {user.current_streak} day streak")
-        else:
-            await message.answer("You haven't started yet. Use /daily!")
-
-@router.message(Command("top"))
-async def top_cmd(message: types.Message):
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(select(User).order_by(User.coins.desc()).limit(10))
-        top_users = result.scalars().all()
-        if not top_users:
-            await message.answer("No users yet.")
-            return
-        lines = ["ðŸ† Top 10:"]
-        for i, user in enumerate(top_users, start=1):
-            lines.append(f"{i}. {user.telegram_id} - {user.coins} coins")
-        await message.answer("\n".join(lines))
-
-
+    if not user:
+        await message.answer("You haven't started yet. Use /daily.")
+    else:
+        await message.answer(f"🔥 Your current streak: {user.current_streak} days")
