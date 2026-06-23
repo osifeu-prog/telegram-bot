@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta
+﻿from datetime import datetime, timedelta, timezone
 from aiogram import Router, types
 from aiogram.filters import Command
 from sqlalchemy import select
@@ -10,7 +10,7 @@ router = Router()
 @router.message(Command("daily"))
 async def daily_reward(message: types.Message):
     telegram_id = message.from_user.id
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.telegram_id == telegram_id))
         user = result.scalar_one_or_none()
