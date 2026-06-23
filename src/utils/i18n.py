@@ -1,5 +1,5 @@
-﻿import json, os
-LOCALE_DIR = "locales"
+﻿import json, os, os
+LOCALE_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "locales")
 DEFAULT_LANGUAGE = "en"
 _languages = {}
 def get_string(key: str, language: str = None) -> str:
@@ -14,3 +14,4 @@ def get_string(key: str, language: str = None) -> str:
                 return get_string(key, DEFAULT_LANGUAGE)
             return key
     return _languages[language].get(key, key)
+

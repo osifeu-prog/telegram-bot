@@ -28,9 +28,10 @@ class Purchase(Base):
     status = Column(String(20), default="pending")             # pending, confirmed, rejected
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-class SystemConfig(Base):
+class GroupInfo(Base):`n    __tablename__ = "groups"`n`n    id = Column(BigInteger, primary_key=True, index=True)  # chat_id`n    title = Column(String(200))`n    type = Column(String(20))  # group, supergroup`n    added_at = Column(DateTime(timezone=True), server_default=func.now())`n`n`nclass SystemConfig(Base):
     __tablename__ = "system_config"
 
     key = Column(String(50), primary_key=True)
     value = Column(String(500))
+
 
