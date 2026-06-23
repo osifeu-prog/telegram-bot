@@ -106,7 +106,7 @@ async def startup_event():
                 f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
             ))
         # Create system_config table
-        await conn.run_sync(Base.metadata.create_all, tables=[SystemConfig.__table__])
+        await conn.run_sync(Base.metadata.create_all)
         result = await conn.execute(text(
             "SELECT value FROM system_config WHERE key='system_wallet'"
         ))
@@ -124,6 +124,7 @@ async def startup_event():
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
+
 
 
 
