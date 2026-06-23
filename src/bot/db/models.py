@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, Integer, DateTime, func, String, Boolean
+﻿from sqlalchemy import Column, BigInteger, Integer, DateTime, func, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -38,3 +38,4 @@ class SystemConfig(Base):
     __tablename__ = "system_config"
     key = Column(String(50), primary_key=True)
     value = Column(String(500))
+
