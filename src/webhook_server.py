@@ -35,7 +35,7 @@ from src.handlers.pdf_analyzer import router as pdf_analyzer_router
 from src.handlers.kyc import router as kyc_router
 from src.handlers.ton_testnet import router as ton_testnet_router
 from src.handlers.referral import router as referral_router
-from src.handlers.teaser import router as teaser_router
+from src.handlers.teaser import router as teaser_router, start_scheduler
 from src.handlers.help import router as help_router
 from src.handlers.recalc_progress import router as recalc_progress_router
 from src.handlers.achievements import router as achievements_router
@@ -129,4 +129,6 @@ async def startup_event():
             current = await bot.get_webhook_info()
             if current.url != webhook_url:
                 await bot.set_webhook(webhook_url)
+    start_scheduler(bot)
+
 

@@ -5,14 +5,17 @@ from sqlalchemy import select, func, text
 from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import User
 import os
+import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 router = Router()
 ADMIN_ID = int(os.getenv("ADMIN_ID", "8789977826"))
 LAUNCH_DATE = datetime(2026, 7, 7, 12, 0, 0, tzinfo=timezone.utc)
+scheduler = AsyncIOScheduler()
 
-# ----------------------------------------------
+# ------------------------------------------------------------
 # COUNTDOWN
-# ----------------------------------------------
+# ------------------------------------------------------------
 def countdown_str():
     now = datetime.now(timezone.utc)
     delta = LAUNCH_DATE - now
@@ -23,9 +26,9 @@ def countdown_str():
     mins, secs = divmod(remainder, 60)
     return f"{days}d {hours}h {mins}m {secs}s"
 
-# ----------------------------------------------
+# ------------------------------------------------------------
 # USER COMMANDS
-# ----------------------------------------------
+# ------------------------------------------------------------
 @router.message(Command("teaser"))
 async def teaser_cmd(message: types.Message):
     async with AsyncSessionLocal() as session:
@@ -85,10 +88,34 @@ async def leaderboard_cmd(message: types.Message):
         lines.append(f"{i}. `{tid}`  {coins} Shards (🔥{streak}d)")
     await message.answer("\n".join(lines))
 
-# ----------------------------------------------
+# ------------------------------------------------------------
 # DAILY REVEAL
-# ----------------------------------------------
-last_reveal = None  # global store (basic; future: DB)
+# ------------------------------------------------------------
+last_reveal = None
+reveal_list = [
+    "We're building something huge! Stay tuned.",
+    "Secret feature: Governance will give you real voting power!",
+    "Rumour: There's a hidden achievement for 21-day streaks.",
+    "Did you know? You can earn Shards by inviting friends.",
+    "Exclusive access will be given to the Top 100 holders.",
+    "The mini-app is getting a new look soon!",
+    "A new shop item is coming: Boost your voting power!",
+]
+reveal_index = 0
+
+async def send_daily_reveal(bot):
+    global last_reveal, reveal_index
+    hint = reveal_list[reveal_index % len(reveal_list)]
+    reveal_index += 1
+    last_reveal = hint
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User.telegram_id))
+        users = result.scalars().all()
+    for uid in users:
+        try:
+            await bot.send_message(uid, f"💡 Daily Reveal: {hint}")
+        except:
+            pass
 
 @router.message(Command("hint"))
 async def hint_cmd(message: types.Message):
@@ -98,9 +125,9 @@ async def hint_cmd(message: types.Message):
     else:
         await message.answer("No hint yet. Stay tuned!")
 
-# ----------------------------------------------
+# ------------------------------------------------------------
 # ADMIN COMMANDS
-# ----------------------------------------------
+# ------------------------------------------------------------
 def is_admin(msg: types.Message) -> bool:
     return msg.from_user.id == ADMIN_ID
 
@@ -150,7 +177,6 @@ async def reveal_cmd(message: types.Message):
         await message.answer("Usage: /reveal <hint text>")
         return
     last_reveal = hint_text
-    # Broadcast hint to all users
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User.telegram_id))
         users = result.scalars().all()
@@ -162,3 +188,11 @@ async def reveal_cmd(message: types.Message):
         except:
             pass
     await message.answer(f"Reveal sent to {count}/{len(users)} users.")
+
+# ------------------------------------------------------------
+# START SCHEDULER
+# ------------------------------------------------------------
+def start_scheduler(bot):
+    # Send daily reveal at 10:00 AM every day (UTC+3 -> 7:00 UTC)
+    scheduler.add_job(send_daily_reveal, 'cron', hour=7, minute=0, args=[bot])
+    scheduler.start()
