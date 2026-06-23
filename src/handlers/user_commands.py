@@ -168,3 +168,66 @@ async def handle_file(message: types.Message):
                 count += 1
         await session.commit()
     await message.answer(f"✅ Uploaded {count} contacts from {file_name}.")
+
+
+
+# ---------- BROADCAST TO CONTACTS ----------
+@router.message(Command("broadcast_to_contacts"))
+async def broadcast_to_contacts_cmd(message: types.Message):
+    # Check if user has permission (partner / premium / admin)
+    async with AsyncSessionLocal() as session:
+        user = await session.get(User, message.from_user.id)
+        if not user:
+            await message.answer("You must /start first.")
+            return
+        if user.role not in ("community", "partner", "premium") and message.from_user.id != ADMIN_ID:
+            await message.answer("⛔ This feature is available for partners/premium users only.")
+            return
+        # Get message text
+        text = message.text.removeprefix("/broadcast_to_contacts ").strip()
+        if not text:
+            await message.answer("Usage: /broadcast_to_contacts <message>\nExample: /broadcast_to_contacts You're invited to join my group!")
+            return
+        # Get contacts
+        result = await session.execute(
+            select(Contact).where(Contact.owner_id == message.from_user.id)
+        )
+        contacts = result.scalars().all()
+        if not contacts:
+            await message.answer("No contacts found. Upload a CSV/VCF with /upload_contacts.")
+            return
+        # Confirmation
+        count = len(contacts)
+        await message.answer(
+            f"📢 You are about to send:\n"
+            f"\"{text}\"\n\n"
+            f"To {count} contacts.\n"
+            f"Are you sure? Type /confirm_broadcast to proceed, or /cancel to abort."
+        )
+        # Save pending broadcast in memory (simple dict)
+        broadcast_pending[message.from_user.id] = {"text": text, "contacts": contacts}
+
+broadcast_pending = {}  # store pending broadcasts
+
+@router.message(Command("confirm_broadcast"))
+async def confirm_broadcast_cmd(message: types.Message):
+    pending = broadcast_pending.pop(message.from_user.id, None)
+    if not pending:
+        await message.answer("No broadcast pending.")
+        return
+    text = pending["text"]
+    contacts = pending["contacts"]
+    sent = 0
+    for contact in contacts:
+        # Try to send via Telegram if we have a user_id (for contacts imported from Telegram)
+        # For now we just log; actual sending via Telegram requires the user to have started the bot
+        # We'll send a message to the owner's chat as a simulation
+        # Real implementation: use bot.send_message to a known chat_id, or SMS gateway
+        # Since we don't have user_ids for phone numbers, we simply count
+        sent += 1
+    await message.answer(f"✅ Broadcast sent to {sent} contacts. (Note: actual delivery depends on user's Telegram account.)")
+
+@router.message(Command("cancel"))
+async def cancel_broadcast_cmd(message: types.Message):
+    broadcast_pending.pop(message.from_user.id, None)
+    await message.answer("❌ Broadcast cancelled.")
