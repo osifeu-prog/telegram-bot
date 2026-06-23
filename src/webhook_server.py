@@ -28,7 +28,6 @@ from src.handlers.menu_system import router as menu_system_router
 from src.handlers.ops_commands import router as ops_commands_router
 from src.handlers.broadcast import router as broadcast_router
 from src.handlers.groups import router as groups_router
-from src.handlers.contacts import router as contacts_router
 from src.handlers.test_i18n import router as test_i18n_router
 from src.handlers.pdf_analyzer import router as pdf_analyzer_router
 from src.handlers.kyc import router as kyc_router
@@ -39,11 +38,8 @@ from src.handlers.help import router as help_router
 from src.handlers.recalc_progress import router as recalc_progress_router
 from src.handlers.achievements import router as achievements_router
 from src.handlers.settings_notifications import router as settings_router
-from src.handlers.partner import router as partner_router
-from src.handlers.tasks_tracker import router as tasks_router
 from src.handlers.mini_app_improved import router as mini_app_improved_router
 from src.handlers.governance import router as governance_router
-from src.handlers.echo_test import router as echo_router
 from src.api.mini_app import router as mini_app_router
 from src.bot.bot import bot
 from src.services.notifications import send_daily_reminders
@@ -67,7 +63,6 @@ dp.include_router(menu_system_router)
 dp.include_router(ops_commands_router)
 dp.include_router(broadcast_router)
 dp.include_router(groups_router)
-dp.include_router(contacts_router)
 dp.include_router(test_i18n_router)
 dp.include_router(pdf_analyzer_router)
 dp.include_router(kyc_router)
@@ -78,11 +73,8 @@ dp.include_router(help_router)
 dp.include_router(recalc_progress_router)
 dp.include_router(achievements_router)
 dp.include_router(settings_router)
-dp.include_router(partner_router)
-dp.include_router(tasks_router)
 dp.include_router(mini_app_improved_router)
 dp.include_router(governance_router)
-dp.include_router(echo_router)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
