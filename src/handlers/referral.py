@@ -1,3 +1,4 @@
+﻿from src.handlers.achievements import check_and_award
 from aiogram import Router, types
 from aiogram.filters import Command
 from sqlalchemy import select, func
@@ -17,7 +18,7 @@ async def ref_cmd(message: types.Message):
         )
         count = result.scalar()
     await message.answer(
-        f"👥 **Referral System**\n\n"
+        f"ðŸ‘¥ **Referral System**\n\n"
         f"Your referral link:\n{ref_link}\n\n"
         f"Friends invited: {count}\n"
         f"Bonus per friend: {REFERRAL_BONUS} coins\n\n"
@@ -42,9 +43,11 @@ async def start_with_ref(message: types.Message):
                     if referrer:
                         referrer.coins += REFERRAL_BONUS
                     await session.commit()
-                    await message.answer("🎉 You were referred! +50 bonus coins!")
+        await check_and_award(ref_id, trigger='referral')
+                    await message.answer("ðŸŽ‰ You were referred! +50 bonus coins!")
         except:
             pass
     # Continue with normal start
     await message.answer("Welcome! Use /daily to get your first reward.")
+
 

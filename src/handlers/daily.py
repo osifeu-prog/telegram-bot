@@ -1,3 +1,4 @@
+﻿from src.handlers.achievements import check_and_award
 from datetime import datetime, timedelta, timezone
 from aiogram import Router, types
 from aiogram.filters import Command
@@ -18,9 +19,10 @@ async def daily_reward(message: types.Message):
             user = User(telegram_id=telegram_id, coins=0, current_streak=0)
             session.add(user)
             await session.commit()
+        await check_and_award(message.from_user.id, trigger='daily')
         if user.last_daily and now - user.last_daily < timedelta(hours=24):
             next_time = user.last_daily + timedelta(hours=24)
-            await message.answer(f"⏳ Already claimed today. Try again after {next_time.strftime('%H:%M')}.")
+            await message.answer(f"â³ Already claimed today. Try again after {next_time.strftime('%H:%M')}.")
             return
         if user.last_daily and now - user.last_daily < timedelta(hours=48):
             user.current_streak += 1
@@ -31,8 +33,9 @@ async def daily_reward(message: types.Message):
         user.coins += reward
         user.last_daily = now
         await session.commit()
+        await check_and_award(message.from_user.id, trigger='daily')
         await message.answer(
-            f"🎁 Daily reward!\n+{reward} coins\n🔥 Streak: {user.current_streak} days\n💰 Balance: {user.coins} coins"
+            f"ðŸŽ Daily reward!\n+{reward} coins\nðŸ”¥ Streak: {user.current_streak} days\nðŸ’° Balance: {user.coins} coins"
         )
 
 @router.message(Command("balance"))
@@ -42,7 +45,7 @@ async def balance_cmd(message: types.Message):
         result = await session.execute(select(User).where(User.telegram_id == telegram_id))
         user = result.scalar_one_or_none()
         if user:
-            await message.answer(f"💰 {user.coins} coins | 🔥 {user.current_streak} day streak")
+            await message.answer(f"ðŸ’° {user.coins} coins | ðŸ”¥ {user.current_streak} day streak")
         else:
             await message.answer("You haven't started yet. Use /daily!")
 
@@ -54,8 +57,9 @@ async def top_cmd(message: types.Message):
         if not top_users:
             await message.answer("No users yet.")
             return
-        lines = ["🏆 Top 10:"]
+        lines = ["ðŸ† Top 10:"]
         for i, user in enumerate(top_users, start=1):
             lines.append(f"{i}. {user.telegram_id} - {user.coins} coins")
         await message.answer("\n".join(lines))
+
 
