@@ -106,6 +106,7 @@ async def startup_event():
             ("is_kyc", "BOOLEAN DEFAULT FALSE"),
             ("referrer_id", "BIGINT"),
             ("language", "VARCHAR(5) DEFAULT 'en'"),
+            ("achievements", "TEXT"),
         ]:
             await conn.execute(text(
                 f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
