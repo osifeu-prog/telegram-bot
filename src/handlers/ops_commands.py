@@ -1,4 +1,4 @@
-﻿import os, subprocess
+﻿import os, subprocess, httpx
 from datetime import datetime
 from aiogram import Router, types
 from aiogram.filters import Command
@@ -22,7 +22,6 @@ async def backup_cmd(message: types.Message):
             f"zip -r {filename} src static locales requirements.txt railway.json -x '*__pycache__*'",
             shell=True, cwd="/app", check=True
         )
-        # Push to Git (optional)
         subprocess.run("git add backups/ && git commit -m 'Auto backup' && git push", shell=True, cwd="/app")
         await message.reply(f"✅ Backup created: {filename}")
     except Exception as e:
@@ -37,5 +36,31 @@ async def ask_ai_cmd(message: types.Message):
     if not prompt:
         await message.reply("Usage: /ask_ai <your prompt>")
         return
-    # Placeholder  Replace with actual AI API call
-    await message.reply(f"🤖 Your prompt: \"{prompt}\"\n\nAI response: (API not configured yet. Set AI_API_KEY in Railway.)")
+    
+    await message.reply("🤔 Thinking...")
+    
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        await message.reply("❌ GROQ_API_KEY not set.")
+        return
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={
+                    "model": "llama-3.1-8b-instant",
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful bot assistant. Answer in the language the user asks."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 500
+                },
+                timeout=30
+            )
+            data = resp.json()
+            reply = data["choices"][0]["message"]["content"]
+            await message.reply(f"🤖 **AI Response:**\n\n{reply}")
+        except Exception as e:
+            await message.reply(f"❌ AI Error: {e}")
