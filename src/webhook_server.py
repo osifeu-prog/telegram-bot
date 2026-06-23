@@ -40,6 +40,7 @@ from src.handlers.help import router as help_router
 from src.handlers.recalc_progress import router as recalc_progress_router
 from src.handlers.achievements import router as achievements_router
 from src.handlers.settings_notifications import router as settings_router
+from src.handlers.partner import router as partner_router
 from src.handlers.tasks_tracker import router as tasks_router
 from src.handlers.mini_app_improved import router as mini_app_improved_router
 from src.api.mini_app import router as mini_app_router
@@ -77,6 +78,7 @@ dp.include_router(help_router)
 dp.include_router(recalc_progress_router)
 dp.include_router(achievements_router)
 dp.include_router(settings_router)
+    dp.include_router(partner_router)
 dp.include_router(tasks_router)
 dp.include_router(mini_app_improved_router)
 
@@ -135,3 +137,4 @@ async def startup_event():
             if current.url != webhook_url:
                 await bot.set_webhook(webhook_url)
     start_scheduler(bot)
+

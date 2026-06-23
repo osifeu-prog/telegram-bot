@@ -16,6 +16,8 @@ class User(Base):
     referrer_id = Column(BigInteger, nullable=True)
     language = Column(String(5), default='en')
     notifications_enabled = Column(Boolean, default=True)
+    partner_code = Column(String(20), unique=True, nullable=True)
+    partner_commission = Column(Integer, default=15)  # percent
     achievements = Column(Text, default="[]")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -61,6 +63,7 @@ class SystemConfig(Base):
     __tablename__ = "system_config"
     key = Column(String(50), primary_key=True)
     value = Column(String(500))
+
 
 
 
