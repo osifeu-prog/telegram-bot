@@ -23,6 +23,7 @@ from src.handlers.governance import router as governance_router
 from src.handlers.wallet import router as wallet_router
 from src.handlers.deposits import router as deposits_router
 from src.handlers.profile import router as profile_router
+from src.handlers.demo import router as demo_router
 from src.api.mini_app import router as mini_app_router
 from src.bot.bot import bot
 from src.services.notifications import send_daily_reminders
@@ -40,6 +41,7 @@ dp.include_router(governance_router)
 dp.include_router(wallet_router)
 dp.include_router(deposits_router)
 dp.include_router(profile_router)
+dp.include_router(demo_router)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -87,3 +89,4 @@ async def startup_event():
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
+
