@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLH Rewards</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 16px; background: #f5f5f5; }
+        .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        button { background: #007bff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; width: 100%; }
+        button:disabled { background: #ccc; }
+        .coins { font-size: 32px; font-weight: bold; }
+        .streak { color: orange; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="card">
+            <div>?? Coins</div>
+            <div class="coins" id="coins">...</div>
+            <div class="streak" id="streak">?? 0 days</div>
+        </div>
+        <div class="card">
+            <button id="dailyBtn" onclick="claimDaily()">?? Claim Daily Reward</button>
+        </div>
+        <div class="card">
+            <h3>?? Shop</h3>
+            <button id="boostBtn" onclick="buyBoost()">? Streak Boost (100 Stars)</button>
+        </div>
+    </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        const userId = tg.initDataUnsafe.user?.id;
+        if (!userId) {
+            document.body.innerHTML = 'Please open via Telegram bot';
+            throw new Error('No user id');
+        }
+
+        async function api(path, method='GET', body) {
+            const res = await fetch(path, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: body ? JSON.stringify(body) : undefined
+            });
+            return res.json();
+        }
+
+        async function loadUser() {
+            const data = await api(`/api/user/${userId}`);
+            document.getElementById('coins').innerText = data.coins;
+            document.getElementById('streak').innerText = `?? ${data.streak} days`;
+            document.getElementById('dailyBtn').disabled = !data.can_claim;
+        }
+
+        async function claimDaily() {
+            const res = await api('/api/daily/claim', 'POST', { telegram_id: userId });
+            if (res.error) {
+                alert(res.error);
+                return;
+            }
+            document.getElementById('coins').innerText = res.coins;
+            document.getElementById('streak').innerText = `?? ${res.streak} days`;
+            document.getElementById('dailyBtn').disabled = true;
+        }
+
+        async function buyBoost() {
+            const res = await api('/api/store/buy', 'POST', { telegram_id: userId, item: 'boost' });
+            if (res.invoice_url) {
+                tg.openInvoice(res.invoice_url, (status) => {
+                    if (status === 'paid') {
+                        alert('Payment successful!');
+                        loadUser();
+                    } else {
+                        alert('Payment failed or cancelled');
+                    }
+                });
+            } else if (res.error) {
+                alert(res.error);
+            }
+        }
+
+        loadUser();
+    </script>
+</body>
+</html>
