@@ -61,7 +61,7 @@ async def startup_event():
                 ("created_at", "TIMESTAMP WITH TIME ZONE DEFAULT now()"),
             ]:
                 await conn.execute(text(
-                    f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {{col_name}} {{col_def}}"
+                    f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
                 ))
     # Set webhook in production
     mode = os.getenv("MODE", "DEV")
