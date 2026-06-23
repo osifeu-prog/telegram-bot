@@ -1,4 +1,4 @@
-import os
+﻿import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -14,6 +14,7 @@ from src.bot.db.models import Base
 from src.bot.handlers.admin_ops import router as admin_ops_router
 from src.handlers.daily import router as daily_router
 from src.handlers.payments import router as payments_router
+from src.handlers.user_commands import router as user_commands_router
 from src.api.mini_app import router as mini_app_router
 from src.bot.bot import bot
 
@@ -22,6 +23,7 @@ setup_routers(dp)
 dp.include_router(admin_ops_router)
 # daily_router is already included via setup_routers
 dp.include_router(payments_router)
+dp.include_router(user_commands_router)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -69,3 +71,4 @@ async def startup_event():
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
+
