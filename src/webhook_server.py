@@ -1,4 +1,4 @@
-﻿import os
+import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -69,7 +69,6 @@ dp.include_router(ton_testnet_router)
 dp.include_router(referral_router)
 dp.include_router(teaser_router)
 dp.include_router(help_router)
-dp.include_router(recalc_progress_router)
 dp.include_router(achievements_router)
 dp.include_router(settings_router)
 dp.include_router(mini_app_improved_router)
@@ -132,4 +131,3 @@ async def startup_event():
             if current.url != webhook_url:
                 await bot.set_webhook(webhook_url)
     start_scheduler(bot)
-
