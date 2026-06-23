@@ -12,7 +12,7 @@ def is_admin(msg: types.Message) -> bool:
 
 @router.message(Command("kyc"))
 async def kyc_info(message: types.Message):
-    await message.reply(
+    await message.answer(
         "🕵️ **KYC Verification**\n\n"
         "Send a clear photo of your ID/passport as a document.\n"
         "An admin will review and update your status.\n\n"
@@ -20,28 +20,28 @@ async def kyc_info(message: types.Message):
     )
 
 @router.message(Command("kyc_status"))
-async def kyc_status(message: types.Message):
+async def kyc_status(message: types.Message):`n        try:
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
         user = result.scalar_one_or_none()
         if user and user.is_kyc:
-            await message.reply("✅ You are KYC verified.")
+            await message.answer("✅ You are KYC verified.")
         else:
-            await message.reply("❌ Not verified yet. Send your document.")
+            await message.answer("❌ Not verified yet. Send your document.")
 
 @router.message(Command("kyc_approve"))
 async def kyc_approve(message: types.Message):
     if not is_admin(message):
-        await message.reply("⛔ Access denied.")
+        await message.answer("⛔ Access denied.")
         return
     parts = message.text.split()
     if len(parts) < 2:
-        await message.reply("Usage: /kyc_approve <telegram_id>")
+        await message.answer("Usage: /kyc_approve <telegram_id>")
         return
     try:
         tid = int(parts[1])
     except ValueError:
-        await message.reply("Invalid ID.")
+        await message.answer("Invalid ID.")
         return
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.telegram_id == tid))
@@ -50,6 +50,7 @@ async def kyc_approve(message: types.Message):
             user.is_kyc = True
             user.role = "verified"
             await session.commit()
-            await message.reply(f"✅ User {tid} is now KYC verified.")
+            await message.answer(f"✅ User {tid} is now KYC verified.")
         else:
-            await message.reply("User not found.")
+            await message.answer("User not found.")
+
