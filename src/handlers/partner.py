@@ -18,7 +18,6 @@ async def partner_register_cmd(message: types.Message):
         try:
             _ = user.partner_code
         except AttributeError:
-            # Column still missing after migration? Run fix script.
             await message.answer("System update in progress. Please try again in a minute.")
             return
         if user.partner_code:
