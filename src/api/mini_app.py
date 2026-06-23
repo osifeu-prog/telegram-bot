@@ -1,9 +1,34 @@
-﻿from fastapi import APIRouter, Query
+﻿import json
+from fastapi import APIRouter, Query
 from sqlalchemy import select
 from src.bot.db.database import AsyncSessionLocal
-from src.bot.db.models import User
+from src.bot.db.models import User, Vote
 
 router = APIRouter()
+
+@router.get("/api/votes")
+async def get_votes():
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(Vote).where(Vote.is_active == True)
+        )
+        votes = result.scalars().all()
+    return [
+        {"id": v.id, "question": v.question, "options": json.loads(v.options)}
+        for v in votes
+    ]
+
+@router.post("/api/vote/{vote_id}/{option_index}")
+async def cast_vote(vote_id: int, option_index: int):
+    async with AsyncSessionLocal() as session:
+        vote = await session.get(Vote, vote_id)
+        if not vote:
+            return {"error": "Vote not found"}
+        options = json.loads(vote.options)
+        if 0 <= option_index < len(options):
+            # In real app, store vote record; here we just return success
+            return {"status": "ok", "chosen": options[option_index]}
+        return {"error": "Invalid option"}
 @router.post("/api/set_path")
 async def set_path(data: dict):
     telegram_id = data.get("telegram_id")
@@ -49,4 +74,5 @@ async def get_top(limit: int = Query(default=10, le=50)):
         {"rank": i+1, "telegram_id": tid, "coins": coins, "streak": streak}
         for i, (tid, coins, streak) in enumerate(rows)
     ]
+
 

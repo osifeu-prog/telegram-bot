@@ -16,25 +16,54 @@ body { font-family: system-ui; background: #0f172a; color: #e2e8f0; padding: 1re
 </style>
 </head>
 <body>
-<!-- מסך Onboarding -->
+<!-- ×ž×¡×š Onboarding -->
 <div id="onboarding" class="card">
-  <h2>🚀 Welcome to SLH Investor Wallet!</h2>
+  <h2>ðŸš€ Welcome to SLH Investor Wallet!</h2>
   <p>Earn daily rewards, vote on community decisions, and unlock exclusive features.</p>
   <p>Choose your path:</p>
-  <button class="btn btn-primary" onclick="choosePath('gaming')">🎮 Gaming  Daily tasks & rewards</button>
-  <button class="btn btn-success" onclick="choosePath('community')">🏛️ Community  Voting & governance</button>
+  <button class="btn btn-primary" onclick="choosePath('gaming')">ðŸŽ® Gaming  Daily tasks & rewards</button>
+  <button class="btn btn-success" onclick="choosePath('community')">ðŸ›ï¸ Community  Voting & governance</button>
 </div>
 
-<!-- מסך לידרבורד (מוסתר עד אחרי Onboarding) -->
+<!-- ×ž×¡×š ×œ×™×“×¨×‘×•×¨×“ (×ž×•×¡×ª×¨ ×¢×“ ××—×¨×™ Onboarding) -->
+<div class="card hidden" id="voting-section">
+  <h2>🗳 Active Votes</h2>
+  <div id="votes-list">Loading votes...</div>
+</div>
+<script>
+async function loadVotes() {
+  try {
+    const resp = await fetch('/api/votes');
+    const votes = await resp.json();
+    const container = document.getElementById('votes-list');
+    if (!votes.length) { container.innerHTML = '<p>No active votes</p>'; return; }
+    container.innerHTML = votes.map(v => {
+      const opts = v.options.map((o,i) => `<button onclick="castVote(${v.id},${i})" class="btn btn-primary">${o}</button>`).join(' ');
+      return `<div class="card"><strong>${v.question}</strong><div>${opts}</div></div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+async function castVote(voteId, optionIndex) {
+  await fetch(`/api/vote/${voteId}/${optionIndex}`, {method:'POST'});
+  alert('Vote cast!');
+  loadVotes();
+}
+// Call loadVotes when the main screen is shown
+document.addEventListener('DOMContentLoaded', () => {
+  if (!document.getElementById('onboarding').classList.contains('hidden')) return;
+  document.getElementById('voting-section').classList.remove('hidden');
+  loadVotes();
+});
+</script>
 <div id="main" class="hidden">
   <div class="card">
-    <h2>🏆 Top 10</h2>
+    <h2>ðŸ† Top 10</h2>
     <ul class="leaderboard" id="top-list">Loading...</ul>
   </div>
 </div>
 
 <script>
-// בדוק אם המשתמש כבר בחר מסלול (שמור ב-localStorage)
+// ×‘×“×•×§ ×× ×”×ž×©×ª×ž×© ×›×‘×¨ ×‘×—×¨ ×ž×¡×œ×•×œ (×©×ž×•×¨ ×‘-localStorage)
 const savedPath = localStorage.getItem('slh_path');
 if (savedPath) {
   document.getElementById('onboarding').classList.add('hidden');
@@ -43,9 +72,9 @@ if (savedPath) {
 }
 
 async function choosePath(path) {
-  // שמירה מקומית + שליחה לשרת
+  // ×©×ž×™×¨×” ×ž×§×•×ž×™×ª + ×©×œ×™×—×” ×œ×©×¨×ª
   localStorage.setItem('slh_path', path);
-  // שליחת בחירה לשרת (API פשוט)
+  // ×©×œ×™×—×ª ×‘×—×™×¨×” ×œ×©×¨×ª (API ×¤×©×•×˜)
   try {
     await fetch('/api/set_path', {
       method: 'POST',
@@ -53,8 +82,8 @@ async function choosePath(path) {
       body: JSON.stringify({ telegram_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 8789977826, path: path })
     });
   } catch(e) { console.error(e); }
-  // מתן פרס ראשון
-  alert('🎁 You received 50 Genesis Shards!');
+  // ×ž×ª×Ÿ ×¤×¨×¡ ×¨××©×•×Ÿ
+  alert('ðŸŽ You received 50 Genesis Shards!');
   document.getElementById('onboarding').classList.add('hidden');
   document.getElementById('main').classList.remove('hidden');
   loadTop();
@@ -67,7 +96,7 @@ async function loadTop() {
     const list = document.getElementById('top-list');
     if (!data.length) { list.innerHTML = '<li>No participants yet.</li>'; return; }
     list.innerHTML = data.map(u =>
-      `<li><span>#${u.rank} <strong>${u.telegram_id}</strong></span> <span class="coins">${u.coins} 💰</span></li>`
+      `<li><span>#${u.rank} <strong>${u.telegram_id}</strong></span> <span class="coins">${u.coins} ðŸ’°</span></li>`
     ).join('');
   } catch(e) { document.getElementById('top-list').innerHTML = '<li>Error loading leaderboard</li>'; }
 }

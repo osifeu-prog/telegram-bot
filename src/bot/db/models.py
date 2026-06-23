@@ -36,10 +36,22 @@ class GroupInfo(Base):
     type = Column(String(20))
     added_at = Column(DateTime(timezone=True), server_default=func.now())
 
+
+class Vote(Base):
+    __tablename__ = "votes"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    question = Column(String(500))
+    options = Column(Text)  # JSON list of options
+    created_by = Column(BigInteger)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    closes_at = Column(DateTime(timezone=True), nullable=True)
+
 class SystemConfig(Base):
     __tablename__ = "system_config"
     key = Column(String(50), primary_key=True)
     value = Column(String(500))
+
 
 
 
