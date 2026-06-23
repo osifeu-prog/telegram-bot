@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+﻿from datetime import datetime, timedelta
 from aiogram import Router, types
 from aiogram.filters import Command
 from sqlalchemy import select
@@ -20,7 +20,7 @@ async def daily_reward(message: types.Message):
             await session.commit()
         if user.last_daily and now - user.last_daily < timedelta(hours=24):
             next_time = user.last_daily + timedelta(hours=24)
-            await message.reply(f"? Already claimed today. Try again after {next_time.strftime('%H:%M')}.")
+            await message.reply(f"⏳ Already claimed today. Try again after {next_time.strftime('%H:%M')}.")
             return
         if user.last_daily and now - user.last_daily < timedelta(hours=48):
             user.current_streak += 1
@@ -32,7 +32,7 @@ async def daily_reward(message: types.Message):
         user.last_daily = now
         await session.commit()
         await message.reply(
-            f"?? Daily reward!\n+{reward} coins\n?? Streak: {user.current_streak} days\n?? Balance: {user.coins} coins"
+            f"🎁 Daily reward!\n+{reward} coins\n🔥 Streak: {user.current_streak} days\n💰 Balance: {user.coins} coins"
         )
 
 @router.message(Command("balance"))
@@ -42,7 +42,7 @@ async def balance_cmd(message: types.Message):
         result = await session.execute(select(User).where(User.telegram_id == telegram_id))
         user = result.scalar_one_or_none()
         if user:
-            await message.reply(f"?? {user.coins} coins | ?? {user.current_streak} day streak")
+            await message.reply(f"💰 {user.coins} coins | 🔥 {user.current_streak} day streak")
         else:
             await message.reply("You haven't started yet. Use /daily!")
 
@@ -54,7 +54,7 @@ async def top_cmd(message: types.Message):
         if not top_users:
             await message.reply("No users yet.")
             return
-        lines = ["?? Top 10:"]
+        lines = ["🏆 Top 10:"]
         for i, user in enumerate(top_users, start=1):
             lines.append(f"{i}. {user.telegram_id} - {user.coins} coins")
         await message.reply("\n".join(lines))

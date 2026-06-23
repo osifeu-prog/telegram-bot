@@ -1,4 +1,4 @@
-from aiogram import Router, F
+﻿from aiogram import Router, F
 from aiogram.types import PreCheckoutQuery, Message
 from sqlalchemy import select
 from src.bot.db.database import AsyncSessionLocal
@@ -21,4 +21,4 @@ async def process_successful_payment(message: Message):
             if user:
                 user.boosts_available += 1
                 await session.commit()
-        await message.answer("? Boost purchased! Your streak is protected.")
+        await message.answer("✅ Boost purchased! Your streak is protected.")
