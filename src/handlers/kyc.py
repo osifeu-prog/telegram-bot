@@ -20,14 +20,17 @@ async def kyc_info(message: types.Message):
     )
 
 @router.message(Command("kyc_status"))
-async def kyc_status(message: types.Message):`n        try:
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
-        user = result.scalar_one_or_none()
-        if user and user.is_kyc:
-            await message.answer("✅ You are KYC verified.")
-        else:
-            await message.answer("❌ Not verified yet. Send your document.")
+async def kyc_status(message: types.Message):
+    try:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
+            user = result.scalar_one_or_none()
+            if user and user.is_kyc:
+                await message.answer("✅ You are KYC verified.")
+            else:
+                await message.answer("❌ Not verified yet. Send your document.")
+    except Exception as e:
+        await message.answer(f"Error checking KYC: {e}")
 
 @router.message(Command("kyc_approve"))
 async def kyc_approve(message: types.Message):
@@ -53,4 +56,3 @@ async def kyc_approve(message: types.Message):
             await message.answer(f"✅ User {tid} is now KYC verified.")
         else:
             await message.answer("User not found.")
-
