@@ -1,13 +1,12 @@
 ﻿from aiogram import Router, types
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from sqlalchemy import select, func
 from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import Vote, User
 import json
 
 router = Router()
-
-ADMIN_ID = 8789977826  # fallback
+ADMIN_ID = 8789977826
 
 def is_admin(msg: types.Message) -> bool:
     return msg.from_user.id == ADMIN_ID
@@ -17,7 +16,6 @@ async def propose_cmd(message: types.Message):
     if not is_admin(message):
         await message.answer("⛔ Access denied.")
         return
-    # Usage: /propose <question> | <option1>,<option2>,...
     text = message.text.removeprefix("/propose ").strip()
     if not text or '|' not in text:
         await message.answer("Usage: /propose <question> | <option1>,<option2>,...")
@@ -53,26 +51,29 @@ async def vote_cmd(message: types.Message):
         lines.append(f"/vote_{v.id}  {v.question}")
     await message.answer("\n".join(lines))
 
-# Dynamic handlers for each vote
-@router.message(Command(prefix="vote_"))
-async def vote_detail(message: types.Message):
-    vote_id = int(message.text.split('_')[1])
-    async with AsyncSessionLocal() as session:
-        vote = await session.get(Vote, vote_id)
-    if not vote:
-        await message.answer("Vote not found.")
-        return
-    options = json.loads(vote.options)
-    text = f"**{vote.question}**\n\nOptions:"
-    for i, opt in enumerate(options, 1):
-        text += f"\n{i}. {opt}"
-    text += "\n\nReply with the option number to vote."
-    await message.answer(text)
-
-# Listen for plain numbers (1,2,...) as votes (simplified)
+# Catch all /vote_<id> manually
 @router.message()
-async def handle_vote(message: types.Message):
-    # Only process if the user is replying to a vote (not a command)
+async def catch_vote_id(message: types.Message):
+    if message.text and message.text.startswith('/vote_'):
+        try:
+            vote_id = int(message.text.split('_')[1])
+        except:
+            return
+        async with AsyncSessionLocal() as session:
+            vote = await session.get(Vote, vote_id)
+        if not vote:
+            await message.answer("Vote not found.")
+            return
+        options = json.loads(vote.options)
+        text = f"**{vote.question}**\n\nOptions:"
+        for i, opt in enumerate(options, 1):
+            text += f"\n{i}. {opt}"
+        text += "\n\nReply with the option number to vote."
+        await message.answer(text)
+
+# Handle plain numbers as votes (simplified)
+@router.message()
+async def handle_vote_reply(message: types.Message):
     if not message.text or not message.text.strip().isdigit():
         return
     option_num = int(message.text.strip())
@@ -83,13 +84,11 @@ async def handle_vote(message: types.Message):
         active_votes = result.scalars().all()
         if not active_votes:
             return
-        # Assume the latest active vote is the one the user is voting on
         vote = active_votes[0]
         options = json.loads(vote.options)
         if 1 <= option_num <= len(options):
             chosen = options[option_num-1]
             await message.answer(f"✅ You voted for: {chosen} in vote #{vote.id}")
-            # (in production, store the vote in a separate table to prevent duplicates)
         else:
             await message.answer("Invalid option number.")
 
