@@ -4,8 +4,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func, text
 from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import User
-import os
-import asyncio
+import os, asyncio, random
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 router = Router()
@@ -53,7 +52,7 @@ async def daily_quest_cmd(message: types.Message):
         result = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
         user = result.scalar_one_or_none()
         if not user:
-            user = User(telegram_id=message.from_user.id, coins=0, current_streak=0)
+            user = User(telegram_id=message.from_user.id, coins=0, current_streak=0, notifications_enabled=True)
             session.add(user)
         if user.last_daily and user.last_daily.date() == today:
             await message.answer("✅ Already claimed today's quest. Come back tomorrow!")
@@ -89,7 +88,7 @@ async def leaderboard_cmd(message: types.Message):
     await message.answer("\n".join(lines))
 
 # ------------------------------------------------------------
-# DAILY REVEAL
+# DAILY REVEAL (randomly every 2‑3 days)
 # ------------------------------------------------------------
 last_reveal = None
 reveal_list = [
@@ -109,13 +108,17 @@ async def send_daily_reveal(bot):
     reveal_index += 1
     last_reveal = hint
     async with AsyncSessionLocal() as session:
-        result = await session.execute(select(User.telegram_id))
-        users = result.scalars().all()
-    for uid in users:
-        try:
-            await bot.send_message(uid, f"💡 Daily Reveal: {hint}")
-        except:
-            pass
+        result = await session.execute(select(User.telegram_id, User.notifications_enabled))
+        users = result.all()
+    for uid, enabled in users:
+        if enabled:
+            try:
+                await bot.send_message(uid, f"💡 Daily Reveal: {hint}")
+            except:
+                pass
+    # schedule next reveal in 2‑3 days at random hour
+    next_delay = timedelta(days=random.randint(2, 3), hours=random.randint(0, 23), minutes=random.randint(0, 59))
+    scheduler.add_job(send_daily_reveal, 'date', run_date=datetime.now(timezone.utc) + next_delay, args=[bot])
 
 @router.message(Command("hint"))
 async def hint_cmd(message: types.Message):
@@ -178,21 +181,22 @@ async def reveal_cmd(message: types.Message):
         return
     last_reveal = hint_text
     async with AsyncSessionLocal() as session:
-        result = await session.execute(select(User.telegram_id))
-        users = result.scalars().all()
+        result = await session.execute(select(User.telegram_id, User.notifications_enabled))
+        users = result.all()
     count = 0
-    for uid in users:
-        try:
-            await message.bot.send_message(uid, f"💡 Daily Reveal: {hint_text}")
-            count += 1
-        except:
-            pass
+    for uid, enabled in users:
+        if enabled:
+            try:
+                await message.bot.send_message(uid, f"💡 Daily Reveal: {hint_text}")
+                count += 1
+            except:
+                pass
     await message.answer(f"Reveal sent to {count}/{len(users)} users.")
 
 # ------------------------------------------------------------
-# START SCHEDULER
+# START SCHEDULER  first reveal in a few minutes (for test)
 # ------------------------------------------------------------
 def start_scheduler(bot):
-    # Send daily reveal at 10:00 AM every day (UTC+3 -> 7:00 UTC)
-    scheduler.add_job(send_daily_reveal, 'cron', hour=7, minute=0, args=[bot])
+    # First reveal in 1‑2 minutes (so we can test)
+    scheduler.add_job(send_daily_reveal, 'date', run_date=datetime.now(timezone.utc) + timedelta(minutes=1), args=[bot])
     scheduler.start()
