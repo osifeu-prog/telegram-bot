@@ -1,4 +1,4 @@
-import os
+﻿import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -36,6 +36,7 @@ from src.handlers.mini_app_improved import router as mini_app_improved_router
 from src.api.mini_app import router as mini_app_router
 from src.bot.bot import bot
 from src.services.notifications import send_daily_reminders
+from src.services.health_monitor import ServiceHealth
 
 dp = Dispatcher(storage=storage)
 setup_routers(dp)
@@ -108,9 +109,11 @@ async def startup_event():
     # Start daily reminders
     import asyncio as _asyncio
     _asyncio.create_task(send_daily_reminders())
+    asyncio.create_task(ServiceHealth.check_all(bot, int(os.getenv('ADMIN_ID', '0'))))
     # Set webhook
     mode = os.getenv("MODE", "DEV")
     if mode != "DEV":
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
+
