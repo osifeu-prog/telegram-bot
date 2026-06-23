@@ -1,13 +1,9 @@
-﻿import json
-import os
-
+﻿import json, os
 LOCALE_DIR = "locales"
 DEFAULT_LANGUAGE = "en"
 _languages = {}
-
 def get_string(key: str, language: str = None) -> str:
-    if not language:
-        language = DEFAULT_LANGUAGE
+    if not language: language = DEFAULT_LANGUAGE
     if language not in _languages:
         path = os.path.join(LOCALE_DIR, f"{language}.json")
         try:
