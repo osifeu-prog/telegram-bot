@@ -109,11 +109,12 @@ async def startup_event():
     # Start daily reminders
     import asyncio as _asyncio
     _asyncio.create_task(send_daily_reminders())
-    asyncio.create_task(ServiceHealth.check_all(bot, int(os.getenv('ADMIN_ID', '0'))))
+    _asyncio.create_task(ServiceHealth.check_all(bot, int(os.getenv('ADMIN_ID', '0'))))
     # Set webhook
     mode = os.getenv("MODE", "DEV")
     if mode != "DEV":
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
+
 

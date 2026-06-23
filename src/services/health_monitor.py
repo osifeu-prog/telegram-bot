@@ -3,7 +3,7 @@ from typing import Optional
 
 class ServiceHealth:
     @staticmethod
-    async def check_all(bot, admin_id: int):
+    async def check_all(bot, admin_id: int):`n        try:
         """Check all services and notify admin if any are down."""
         issues = []
         
@@ -43,4 +43,5 @@ class ServiceHealth:
             except:
                 pass
         
-        return issues
+                return issues`n        except Exception as e:`n            print(f"Health check failed: {e}")`n            return []
+
