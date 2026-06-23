@@ -126,4 +126,7 @@ async def startup_event():
     if mode != "DEV":
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
-            await bot.set_webhook(webhook_url)
+            current = await bot.get_webhook_info()
+            if current.url != webhook_url:
+                await bot.set_webhook(webhook_url)
+
