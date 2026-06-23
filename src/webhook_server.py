@@ -20,7 +20,6 @@ from src.bot.bot import bot
 dp = Dispatcher(storage=storage)
 setup_routers(dp)
 dp.include_router(admin_ops_router)
-dp.include_router(daily_router)
 dp.include_router(payments_router)
 
 app = FastAPI()
@@ -61,3 +60,4 @@ async def startup_event():
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
+
