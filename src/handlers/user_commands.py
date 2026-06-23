@@ -131,3 +131,4 @@ async def contacts_list_cmd(message: types.Message):
     for c in contacts:
         lines.append(f"{c.phone}  {c.name or 'N/A'} [{c.group_name or '-'}]")
     await message.answer('\n'.join(lines))
+
