@@ -46,7 +46,7 @@ async def startup_event():
             ("coins", "INTEGER DEFAULT 0"),
             ("current_streak", "INTEGER DEFAULT 0"),
             ("last_daily", "TIMESTAMP WITH TIME ZONE"),
-            ("boosts_available", "INTEGER DEFAULT 0"),
+            ("boosts_available", "INTEGER DEFAULT 0", "created_at", "TIMESTAMP WITH TIME ZONE DEFAULT now()"),
         ]:
             await conn.execute(text(
                 f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
@@ -60,4 +60,5 @@ async def startup_event():
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
+
 
