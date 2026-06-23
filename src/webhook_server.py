@@ -1,4 +1,4 @@
-import os
+﻿import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -68,7 +68,7 @@ dp.include_router(pdf_analyzer_router)
 dp.include_router(kyc_router)
 dp.include_router(ton_testnet_router)
 dp.include_router(referral_router)
-    dp.include_router(teaser_router)
+dp.include_router(teaser_router)
 dp.include_router(achievements_router)
 dp.include_router(mini_app_improved_router)
 
@@ -91,7 +91,6 @@ async def root():
 async def startup_event():
     from sqlalchemy import text
     async with engine.begin() as conn:
-        # Add missing columns
         for col_name, col_def in [
             ("coins", "INTEGER DEFAULT 0"),
             ("current_streak", "INTEGER DEFAULT 0"),
@@ -107,7 +106,6 @@ async def startup_event():
             await conn.execute(text(
                 f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
             ))
-        # Create system_config table
         await conn.run_sync(Base.metadata.create_all)
         result = await conn.execute(text(
             "SELECT value FROM system_config WHERE key='system_wallet'"
@@ -116,20 +114,11 @@ async def startup_event():
             await conn.execute(text(
                 "INSERT INTO system_config (key, value) VALUES ('system_wallet', 'UQCd7XHWGj06cBLlWW_DZUN3TWMGr_oWoVy0G0LkC14gQklj')"
             ))
-    # Start daily reminders
     import asyncio as _asyncio
     _asyncio.create_task(send_daily_reminders())
     _asyncio.create_task(ServiceHealth.check_all(bot, int(os.getenv('ADMIN_ID', '0'))))
-    # Set webhook
     mode = os.getenv("MODE", "DEV")
     if mode != "DEV":
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
-
-
-
-
-
-
-
