@@ -19,6 +19,7 @@ from src.handlers.shop import router as shop_router
 from src.handlers.admin_users import router as admin_users_router
 from src.handlers.admin_economy import router as admin_economy_router
 from src.handlers.devops import router as devops_router
+from src.handlers.governance import router as governance_router
 from src.handlers.wallet import router as wallet_router
 from src.handlers.deposits import router as deposits_router
 from src.handlers.profile import router as profile_router
@@ -39,10 +40,9 @@ from src.handlers.help import router as help_router
 from src.handlers.recalc_progress import router as recalc_progress_router
 from src.handlers.achievements import router as achievements_router
 from src.handlers.settings_notifications import router as settings_router
-from src.handlers.partner import router as partner_router
 from src.handlers.tasks_tracker import router as tasks_router
 from src.handlers.mini_app_improved import router as mini_app_improved_router
-from src.handlers.governance import router as governance_router
+from src.handlers.partner import router as partner_router
 from src.handlers.echo_test import router as echo_router
 from src.api.mini_app import router as mini_app_router
 from src.bot.bot import bot
@@ -78,11 +78,11 @@ dp.include_router(help_router)
 dp.include_router(recalc_progress_router)
 dp.include_router(achievements_router)
 dp.include_router(settings_router)
-dp.include_router(partner_router)
 dp.include_router(tasks_router)
 dp.include_router(mini_app_improved_router)
+dp.include_router(partner_router)
+dp.include_router(echo_router)
 dp.include_router(governance_router)
-    dp.include_router(echo_router)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
