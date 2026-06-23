@@ -47,10 +47,21 @@ class Vote(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     closes_at = Column(DateTime(timezone=True), nullable=True)
 
+
+class Contact(Base):
+    __tablename__ = "contacts"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    owner_id = Column(BigInteger, index=True)  # telegram user who uploaded
+    phone = Column(String(20))
+    name = Column(String(100), nullable=True)
+    group_name = Column(String(100), nullable=True)  # optional group tag
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class SystemConfig(Base):
     __tablename__ = "system_config"
     key = Column(String(50), primary_key=True)
     value = Column(String(500))
+
 
 
 
