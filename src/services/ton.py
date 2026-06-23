@@ -1,4 +1,4 @@
-﻿import httpx
+import httpx
 
 TONCENTER_API = "https://toncenter.com/api/v2"
 

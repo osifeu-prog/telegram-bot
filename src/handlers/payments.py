@@ -1,4 +1,4 @@
-﻿from aiogram import Router, F
+from aiogram import Router, F
 from aiogram.types import PreCheckoutQuery, Message
 from sqlalchemy import select
 from src.bot.db.database import AsyncSessionLocal

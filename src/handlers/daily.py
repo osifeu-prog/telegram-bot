@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from aiogram import Router, types
 from aiogram.filters import Command
 from sqlalchemy import select

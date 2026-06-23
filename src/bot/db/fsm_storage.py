@@ -1,4 +1,4 @@
-﻿import os
+import os
 from aiogram.fsm.storage.redis import RedisStorage
 import redis.asyncio as redis
 

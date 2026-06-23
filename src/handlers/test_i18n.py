@@ -1,4 +1,4 @@
-﻿from aiogram import Router, types
+from aiogram import Router, types
 from aiogram.filters import Command
 from src.utils.i18n import get_string
 

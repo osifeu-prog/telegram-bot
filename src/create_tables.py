@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 
 from src.bot.db.database import engine
 from src.bot.models.user import Base

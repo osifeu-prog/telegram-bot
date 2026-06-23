@@ -1,4 +1,4 @@
-﻿from aiogram import Router, types
+from aiogram import Router, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.filters import Command
 

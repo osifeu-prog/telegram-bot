@@ -1,4 +1,4 @@
-﻿import json
+import json
 import redis
 import os
 from dotenv import load_dotenv

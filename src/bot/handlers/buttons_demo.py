@@ -1,4 +1,4 @@
-﻿from aiogram import Router, types
+from aiogram import Router, types
 from aiogram.filters import Command
 
 from src.bot.keyboards.reply_keyboard import main_menu

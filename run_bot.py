@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 
 from src.webhook_server import bot, dp
 

@@ -1,4 +1,4 @@
-﻿import os, zipfile, glob, httpx
+import os, zipfile, glob, httpx
 from datetime import datetime, timezone
 from aiogram import Router, types
 from aiogram.filters import Command

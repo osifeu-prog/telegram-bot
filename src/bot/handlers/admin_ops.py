@@ -1,4 +1,4 @@
-﻿import os
+import os
 import httpx
 from aiogram import Router
 from aiogram.filters import Command

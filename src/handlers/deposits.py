@@ -1,4 +1,4 @@
-﻿from aiogram import Router, types
+from aiogram import Router, types
 from aiogram.filters import Command
 from sqlalchemy import select
 from src.bot.db.database import AsyncSessionLocal

@@ -1,0 +1,4 @@
+venv_fix/
+venv_broken/
+.env
+__pycache__/

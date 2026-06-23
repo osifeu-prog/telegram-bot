@@ -1,4 +1,4 @@
-﻿import asyncio, asyncpg, os
+import asyncio, asyncpg, os
 from dotenv import load_dotenv
 
 async def run_fix():

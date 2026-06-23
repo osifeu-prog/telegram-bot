@@ -1,4 +1,4 @@
-﻿import os, asyncio, aiohttp
+import os, asyncio, aiohttp
 from dotenv import load_dotenv
 load_dotenv(override=True)
 async def test():

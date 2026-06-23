@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from aiogram import Router
 from sqlalchemy import select
 from src.bot.db.database import AsyncSessionLocal

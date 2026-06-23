@@ -1,4 +1,4 @@
-﻿import os
+import os
 from io import BytesIO
 from aiogram import Router, F, types
 from aiogram.filters import Command

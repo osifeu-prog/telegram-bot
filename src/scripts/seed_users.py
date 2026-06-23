@@ -1,4 +1,4 @@
-﻿import asyncio, os, sys
+import asyncio, os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import User

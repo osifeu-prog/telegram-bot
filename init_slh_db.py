@@ -1,4 +1,4 @@
-﻿import sqlite3
+import sqlite3
 
 db = sqlite3.connect("slh_core.db")
 

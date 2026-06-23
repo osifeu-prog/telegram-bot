@@ -1,4 +1,4 @@
-﻿import json, os
+import json, os
 
 LOCALE_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "locales")
 DEFAULT_LANGUAGE = "en"
