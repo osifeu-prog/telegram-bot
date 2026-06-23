@@ -1,4 +1,4 @@
-﻿import os, asyncio
+import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -28,11 +28,11 @@ from src.handlers.language import router as language_router
 from src.handlers.menu_system import router as menu_system_router
 from src.handlers.ops_commands import router as ops_commands_router
 from src.handlers.pdf_analyzer import router as pdf_analyzer_router
-from src.handlers.mini_app_improved import router as mini_app_improved_router
-from src.handlers.achievements import router as achievements_router
-from src.handlers.referral import router as referral_router
-from src.handlers.ton_testnet import router as ton_testnet_router
 from src.handlers.kyc import router as kyc_router
+from src.handlers.ton_testnet import router as ton_testnet_router
+from src.handlers.referral import router as referral_router
+from src.handlers.achievements import router as achievements_router
+from src.handlers.mini_app_improved import router as mini_app_improved_router
 from src.api.mini_app import router as mini_app_router
 from src.bot.bot import bot
 from src.services.notifications import send_daily_reminders
@@ -55,11 +55,11 @@ dp.include_router(language_router)
 dp.include_router(menu_system_router)
 dp.include_router(ops_commands_router)
 dp.include_router(pdf_analyzer_router)
-dp.include_router(mini_app_improved_router)
-dp.include_router(achievements_router)
-dp.include_router(referral_router)
-dp.include_router(ton_testnet_router)
 dp.include_router(kyc_router)
+dp.include_router(ton_testnet_router)
+dp.include_router(referral_router)
+dp.include_router(achievements_router)
+dp.include_router(mini_app_improved_router)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -80,6 +80,7 @@ async def root():
 async def startup_event():
     from sqlalchemy import text
     async with engine.begin() as conn:
+        # Add missing columns
         for col_name, col_def in [
             ("coins", "INTEGER DEFAULT 0"),
             ("current_streak", "INTEGER DEFAULT 0"),
@@ -89,10 +90,13 @@ async def startup_event():
             ("wallet_address", "VARCHAR(100)"),
             ("role", "VARCHAR(20) DEFAULT 'user'"),
             ("is_kyc", "BOOLEAN DEFAULT FALSE"),
+            ("referrer_id", "BIGINT"),
+            ("language", "VARCHAR(5) DEFAULT 'en'"),
         ]:
             await conn.execute(text(
                 f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
             ))
+        # Create system_config table
         await conn.run_sync(Base.metadata.create_all, tables=[SystemConfig.__table__])
         result = await conn.execute(text(
             "SELECT value FROM system_config WHERE key='system_wallet'"
@@ -101,19 +105,12 @@ async def startup_event():
             await conn.execute(text(
                 "INSERT INTO system_config (key, value) VALUES ('system_wallet', 'UQCd7XHWGj06cBLlWW_DZUN3TWMGr_oWoVy0G0LkC14gQklj')"
             ))
-    asyncio.create_task(send_daily_reminders())
+    # Start daily reminders
+    import asyncio as _asyncio
+    _asyncio.create_task(send_daily_reminders())
+    # Set webhook
     mode = os.getenv("MODE", "DEV")
     if mode != "DEV":
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
-
-
-
-
-
-
-
-
-
-
