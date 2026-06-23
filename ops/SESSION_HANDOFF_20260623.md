@@ -19,4 +19,3 @@
 cd D:\0\0.1\slh-telegram-bot
 git pull origin main
 railway up
-
