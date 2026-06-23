@@ -75,7 +75,7 @@ dp.include_router(teaser_router)
 dp.include_router(help_router)
 dp.include_router(recalc_progress_router)
 dp.include_router(achievements_router)
-    dp.include_router(settings_router)
+dp.include_router(settings_router)
 dp.include_router(mini_app_improved_router)
 
 app = FastAPI()
@@ -109,6 +109,7 @@ async def startup_event():
             ("referrer_id", "BIGINT"),
             ("language", "VARCHAR(5) DEFAULT 'en'"),
             ("achievements", "TEXT"),
+            ("notifications_enabled", "BOOLEAN DEFAULT TRUE"),
         ]:
             await conn.execute(text(
                 f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
@@ -132,7 +133,3 @@ async def startup_event():
             if current.url != webhook_url:
                 await bot.set_webhook(webhook_url)
     start_scheduler(bot)
-
-
-
-
