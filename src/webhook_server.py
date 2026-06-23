@@ -132,3 +132,4 @@ async def startup_event():
             if current.url != webhook_url:
                 await bot.set_webhook(webhook_url)
     start_scheduler(bot)
+
