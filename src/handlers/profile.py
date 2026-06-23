@@ -13,13 +13,13 @@ async def profile_cmd(message: types.Message):
         user = result.scalar_one_or_none()
     
     if not user:
-        await message.reply("No profile yet. Use /start to begin!")
+        await message.answer("No profile yet. Use /start to begin!")
         return
     
     role_emoji = {"user": "👤", "verified": "✅", "admin": "🛡️", "founder": "👑"}
     role_name = {"user": "User", "verified": "Verified", "admin": "Admin", "founder": "Founder"}
     
-    await message.reply(
+    await message.answer(
         f"{role_emoji.get(user.role, '👤')} **Profile**\n\n"
         f"🆔 ID: `{user.telegram_id}`\n"
         f"🏷️ Role: {role_name.get(user.role, user.role)}\n"
@@ -33,7 +33,7 @@ async def profile_cmd(message: types.Message):
 
 @router.message(Command("prices"))
 async def prices_cmd(message: types.Message):
-    await message.reply(
+    await message.answer(
         "💎 **Price List (USDT)**\n\n"
         "⚡ Streak Boost  1 USDT\n"
         "Protect your streak for 24h if you miss a day.\n\n"
@@ -46,3 +46,4 @@ async def prices_cmd(message: types.Message):
         "• Priority support\n\n"
         "💡 Use /deposit to learn how to fund your account."
     )
+

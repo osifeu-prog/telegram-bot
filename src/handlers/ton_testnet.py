@@ -10,7 +10,7 @@ TON_TESTNET_WALLET = "UQ...testnet_wallet_address..."  # Replace with your testn
 
 @router.message(Command("testnet_wallet"))
 async def testnet_wallet(message: types.Message):
-    await message.reply(
+    await message.answer(
         f"🧪 **TON Testnet Wallet**\n\n"
         f"Send test USDT here:\n"
         f"`{TON_TESTNET_WALLET}`\n\n"
@@ -21,13 +21,13 @@ async def testnet_wallet(message: types.Message):
 async def testnet_deposit(message: types.Message):
     parts = message.text.split()
     if len(parts) < 3:
-        await message.reply("Usage: /testnet_deposit <tx_hash> <amount>")
+        await message.answer("Usage: /testnet_deposit <tx_hash> <amount>")
         return
     tx_hash = parts[1]
     try:
         amount = int(float(parts[2]) * 100)
     except ValueError:
-        await message.reply("Invalid amount.")
+        await message.answer("Invalid amount.")
         return
     # Auto-approve for testnet (demo)
     async with AsyncSessionLocal() as session:
@@ -37,6 +37,7 @@ async def testnet_deposit(message: types.Message):
         if user:
             user.coins += amount
             await session.commit()
-            await message.reply(f"✅ Testnet deposit approved! +{amount} coins")
+            await message.answer(f"✅ Testnet deposit approved! +{amount} coins")
         else:
-            await message.reply("User not found.")
+            await message.answer("User not found.")
+

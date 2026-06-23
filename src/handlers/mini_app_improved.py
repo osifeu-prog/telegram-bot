@@ -11,4 +11,5 @@ async def open_app(message: types.Message):
         [InlineKeyboardButton(text="🛒 Shop", callback_data="menu_shop"),
          InlineKeyboardButton(text="👥 Referral", callback_data="menu_ref")],
     ])
-    await message.reply("🚀 **SLH App**", reply_markup=keyboard)
+    await message.answer("🚀 **SLH App**", reply_markup=keyboard)
+

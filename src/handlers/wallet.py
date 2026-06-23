@@ -24,7 +24,7 @@ async def wallet_cmd(message: types.Message):
         user = result.scalar_one_or_none()
         user_wallet = user.wallet_address if user and user.wallet_address else "Not set"
     
-    await message.reply(
+    await message.answer(
         f"🏦 **System Wallet (send USDT here):**\n"
         f"`{system_wallet}`\n\n"
         f"👤 **Your Wallet (receive payments):**\n"
@@ -37,11 +37,11 @@ async def wallet_cmd(message: types.Message):
 async def set_wallet_cmd(message: types.Message):
     parts = message.text.split(" ", 1)
     if len(parts) < 2:
-        await message.reply("Usage: /set_wallet <your_usdt_wallet_address>")
+        await message.answer("Usage: /set_wallet <your_usdt_wallet_address>")
         return
     address = parts[1].strip()
     if len(address) < 30:
-        await message.reply("❌ Invalid wallet address. Please enter a valid TON USDT address.")
+        await message.answer("❌ Invalid wallet address. Please enter a valid TON USDT address.")
         return
     
     async with AsyncSessionLocal() as session:
@@ -56,7 +56,7 @@ async def set_wallet_cmd(message: types.Message):
             user.wallet_address = address
         await session.commit()
     
-    await message.reply(
+    await message.answer(
         f"✅ Your USDT wallet has been set:\n"
         f"`{address}`\n\n"
         f"You can now receive payments from the system."
@@ -72,7 +72,7 @@ async def deposit_cmd(message: types.Message):
         config = result.scalar_one_or_none()
         system_wallet = config.value if config else "Not configured"
     
-    await message.reply(
+    await message.answer(
         "💸 **How to Deposit USDT**\n\n"
         "1️⃣ Send USDT to the system wallet:\n"
         f"`{system_wallet}`\n\n"
@@ -82,3 +82,4 @@ async def deposit_cmd(message: types.Message):
         "Example: `/report_deposit abc123def 50`\n\n"
         "⏳ An admin will verify and credit your account."
     )
+

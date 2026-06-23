@@ -5,7 +5,7 @@ router = Router()
 
 @router.message(Command("missions"))
 async def missions_cmd(message: types.Message):
-    await message.reply(
+    await message.answer(
         "📋 **Missions**\n"
         "• Daily Login  Collect your reward with /daily\n"
         "• Invite Friends  Share the bot and earn bonuses\n"
@@ -15,7 +15,7 @@ async def missions_cmd(message: types.Message):
 
 @router.message(Command("tutorial"))
 async def tutorial_cmd(message: types.Message):
-    await message.reply(
+    await message.answer(
         "📘 **Tutorial**\n\n"
         "1️⃣ Start with /daily every day to earn coins.\n"
         "2️⃣ Build your streak  longer streaks = bigger rewards.\n"
@@ -28,7 +28,7 @@ async def tutorial_cmd(message: types.Message):
 
 @router.message(Command("faq"))
 async def faq_cmd(message: types.Message):
-    await message.reply(
+    await message.answer(
         "❓ **FAQ**\n\n"
         "Q: How do I earn coins?\n"
         "A: Use /daily every 24 hours.\n\n"
@@ -43,9 +43,10 @@ async def faq_cmd(message: types.Message):
 
 @router.message(Command("contact"))
 async def contact_cmd(message: types.Message):
-    await message.reply(
+    await message.answer(
         "📧 **Contact**\n"
         "Admin: @Osif\n"
         "Support group: coming soon\n"
         "Report issues: /bug <description>"
     )
+

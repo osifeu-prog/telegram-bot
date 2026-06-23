@@ -14,7 +14,7 @@ def is_admin(msg: types.Message) -> bool:
 @router.message(Command("analyze_pdf"))
 async def analyze_pdf_help(message: types.Message):
     """הוראות שימוש"""
-    await message.reply(
+    await message.answer(
         "📄 **Analyze PDF with AI**\n\n"
         "1️⃣ Send me a PDF file (as a document).\n"
         "2️⃣ Add a caption with your question/instruction.\n"
@@ -26,10 +26,10 @@ async def analyze_pdf_help(message: types.Message):
 async def handle_pdf(message: types.Message):
     """Extract text from PDF and send to AI"""
     if not message.document.file_name.endswith('.pdf'):
-        await message.reply("❌ Only PDF files are supported.")
+        await message.answer("❌ Only PDF files are supported.")
         return
     
-    await message.reply("📄 Reading PDF...")
+    await message.answer("📄 Reading PDF...")
     
     # Download the file
     file = await message.bot.get_file(message.document.file_id)
@@ -42,7 +42,7 @@ async def handle_pdf(message: types.Message):
         for page in pdf.pages:
             text += page.extract_text() + "\n"
     except Exception as e:
-        await message.reply(f"❌ Failed to read PDF: {e}")
+        await message.answer(f"❌ Failed to read PDF: {e}")
         return
     
     # Get user's question (caption or default)
@@ -51,10 +51,10 @@ async def handle_pdf(message: types.Message):
     # Send to AI
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        await message.reply("❌ GROQ_API_KEY not set.")
+        await message.answer("❌ GROQ_API_KEY not set.")
         return
     
-    await message.reply("🤔 Analyzing with AI...")
+    await message.answer("🤔 Analyzing with AI...")
     
     # Truncate text to fit context window
     max_chars = 30000
@@ -78,6 +78,7 @@ async def handle_pdf(message: types.Message):
             )
             data = resp.json()
             reply = data["choices"][0]["message"]["content"]
-            await message.reply(f"🤖 **AI Analysis:**\n\n{reply}")
+            await message.answer(f"🤖 **AI Analysis:**\n\n{reply}")
         except Exception as e:
-            await message.reply(f"❌ AI Error: {e}")
+            await message.answer(f"❌ AI Error: {e}")
+

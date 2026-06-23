@@ -15,13 +15,13 @@ def is_admin(msg: types.Message) -> bool:
 async def report_deposit_cmd(message: types.Message):
     parts = message.text.split()
     if len(parts) < 3:
-        await message.reply("Usage: /report_deposit <tx_hash> <amount_in_usdt>")
+        await message.answer("Usage: /report_deposit <tx_hash> <amount_in_usdt>")
         return
     tx_hash = parts[1]
     try:
         amount = int(float(parts[2]) * 100)
     except ValueError:
-        await message.reply("Invalid amount.")
+        await message.answer("Invalid amount.")
         return
 
     async with AsyncSessionLocal() as session:
@@ -58,14 +58,14 @@ async def report_deposit_cmd(message: types.Message):
                         user.is_kyc = True
                         user.role = "verified"
                 await session.commit()
-                await message.reply(
+                await message.answer(
                     f"✅ Deposit verified automatically!\n"
                     f"ID: #{purchase_id}\n"
                     f"Amount: {amount/100:.2f} USDT → {coins_to_add} coins"
                 )
                 return
 
-    await message.reply(
+    await message.answer(
         f"📩 Deposit reported!\n"
         f"ID: #{purchase_id}\n"
         f"TX: `{tx_hash}`\n"
@@ -76,29 +76,29 @@ async def report_deposit_cmd(message: types.Message):
 @router.message(Command("verify_deposit"))
 async def verify_deposit_cmd(message: types.Message):
     if not is_admin(message):
-        await message.reply("⛔ Access denied.")
+        await message.answer("⛔ Access denied.")
         return
     parts = message.text.split()
     if len(parts) < 2:
-        await message.reply("Usage: /verify_deposit <purchase_id>")
+        await message.answer("Usage: /verify_deposit <purchase_id>")
         return
     try:
         purchase_id = int(parts[1])
     except ValueError:
-        await message.reply("Invalid ID.")
+        await message.answer("Invalid ID.")
         return
 
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Purchase).where(Purchase.id == purchase_id))
         purchase = result.scalar_one_or_none()
         if not purchase or purchase.status != "pending":
-            await message.reply("Not found or already processed.")
+            await message.answer("Not found or already processed.")
             return
 
         config = await session.execute(select(SystemConfig).where(SystemConfig.key == "system_wallet"))
         system_wallet = config.scalar_one_or_none().value if config else None
         if not system_wallet:
-            await message.reply("System wallet not set.")
+            await message.answer("System wallet not set.")
             return
 
         valid = await verify_usdt_transfer(purchase.tx_hash, purchase.amount_usdt, system_wallet)
@@ -113,6 +113,7 @@ async def verify_deposit_cmd(message: types.Message):
                     user.is_kyc = True
                     user.role = "verified"
             await session.commit()
-            await message.reply(f"✅ Deposit #{purchase_id} confirmed!")
+            await message.answer(f"✅ Deposit #{purchase_id} confirmed!")
         else:
-            await message.reply(f"❌ Verification failed for #{purchase_id}")
+            await message.answer(f"❌ Verification failed for #{purchase_id}")
+

@@ -18,7 +18,7 @@ async def achievements_cmd(message: types.Message):
     async with AsyncSessionLocal() as session:
         user = await session.get(User, message.from_user.id)
         if not user:
-            await message.reply("No profile yet.")
+            await message.answer("No profile yet.")
             return
         msg = "🏆 **Achievements**\n\n"
         # Check each achievement
@@ -28,4 +28,5 @@ async def achievements_cmd(message: types.Message):
             msg += f"⏳ Weekly Streak ({user.current_streak}/7)\n"
         if user.coins > 0:
             msg += "✅ First Deposit\n"
-        await message.reply(msg)
+        await message.answer(msg)
+

@@ -8,7 +8,7 @@ router = Router()
 
 @router.message(Command("shop"))
 async def shop_cmd(message: types.Message):
-    await message.reply(
+    await message.answer(
         "🛒 **Shop**\n\n"
         "⚡ Streak Boost  100 Stars\n"
         "Protect your streak if you miss a day.\n"
@@ -19,7 +19,7 @@ async def shop_cmd(message: types.Message):
 
 @router.message(Command("buy"))
 async def buy_cmd(message: types.Message):
-    await message.reply(
+    await message.answer(
         "🛍️ **Buy Boost**\n\n"
         "Open the Mini App to complete your purchase:\n"
         "👉 Use the button below or visit the shop.\n\n"
@@ -33,7 +33,7 @@ async def premium_cmd(message: types.Message):
         result = await session.execute(select(User).where(User.telegram_id == telegram_id))
         user = result.scalar_one_or_none()
         coins = user.coins if user else 0
-    await message.reply(
+    await message.answer(
         "💎 **Premium**\n\n"
         "Coming soon!\n"
         f"Your balance: {coins} coins\n\n"
@@ -43,3 +43,4 @@ async def premium_cmd(message: types.Message):
         "• Exclusive achievements\n"
         "• Priority support"
     )
+

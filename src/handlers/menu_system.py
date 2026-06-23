@@ -32,14 +32,14 @@ def admin_menu_keyboard(lang: str):
 @router.message(Command("menu"))
 async def menu_cmd(message: types.Message):
     if is_admin(message):
-        await message.reply("🛠️ Admin Control Center", reply_markup=admin_menu_keyboard("en"))
+        await message.answer("🛠️ Admin Control Center", reply_markup=admin_menu_keyboard("en"))
     else:
-        await message.reply("🏠 Main Menu", reply_markup=main_menu_keyboard("en"))
+        await message.answer("🏠 Main Menu", reply_markup=main_menu_keyboard("en"))
 
 @router.message(Command("progress"))
 async def progress_cmd(message: types.Message):
     if not is_admin(message):
-        await message.reply("⛔ Access denied.")
+        await message.answer("⛔ Access denied.")
         return
     import json
     try:
@@ -50,14 +50,14 @@ async def progress_cmd(message: types.Message):
     mvp = status["progress"]["mvp"] * 100
     v1 = status["progress"]["v1"] * 100
     v2 = status["progress"]["v2"] * 100
-    await message.reply(
+    await message.answer(
         f"📊 Progress\n\nMVP: {mvp:.0f}%\nV1: {v1:.0f}%\nV2: {v2:.0f}%"
     )
 
 @router.message(Command("missing"))
 async def missing_cmd(message: types.Message):
     if not is_admin(message):
-        await message.reply("⛔ Access denied.")
+        await message.answer("⛔ Access denied.")
         return
     import json
     try:
@@ -67,21 +67,21 @@ async def missing_cmd(message: types.Message):
         status = {}
     missing_files = [f for f, exists in status.get("files", {}).items() if not exists]
     msg = "❌ Missing Items\n" + "\n".join(missing_files) if missing_files else "✅ Nothing missing!"
-    await message.reply(msg)
+    await message.answer(msg)
 
 @router.message(Command("checklist"))
 async def checklist_cmd(message: types.Message):
     if not is_admin(message):
-        await message.reply("⛔ Access denied.")
+        await message.answer("⛔ Access denied.")
         return
-    await message.reply(
+    await message.answer(
         "✔️ Checklist\n✅ Webhook\n✅ DB\n✅ Daily\n✅ Shop\n⏳ Payments\n✅ Votes\n✅ Mini-App\n✅ i18n\n⏳ Referral"
     )
 
 @router.message(Command("full_check"))
 async def full_check_cmd(message: types.Message):
     if not is_admin(message):
-        await message.reply("⛔ Access denied.")
+        await message.answer("⛔ Access denied.")
         return
     import httpx
     checks = []
@@ -100,7 +100,7 @@ async def full_check_cmd(message: types.Message):
     except:
         checks.append(("Database", False))
     msg = "🔍 Full System Check\n" + "\n".join(f"{'✅' if ok else '❌'} {name}" for name, ok in checks)
-    await message.reply(msg)
+    await message.answer(msg)
 
 
 from aiogram import F
@@ -110,17 +110,18 @@ from aiogram.types import CallbackQuery
 async def menu_callback(query: CallbackQuery):
     await query.answer(f"You clicked: {query.data}")
     if query.data == "menu_main":
-        await query.message.reply("🏠 Main Menu placeholder")
+        await query.message.answer("🏠 Main Menu placeholder")
     elif query.data == "menu_shop":
-        await query.message.reply("🛒 Shop placeholder")
+        await query.message.answer("🛒 Shop placeholder")
     elif query.data == "menu_top":
-        await query.message.reply("📊 Top placeholder")
+        await query.message.answer("📊 Top placeholder")
     elif query.data == "admin_status":
-        await query.message.reply("📋 Status: Active")
+        await query.message.answer("📋 Status: Active")
     elif query.data == "check_files":
-        await query.message.reply("🔍 Files: All present")
+        await query.message.answer("🔍 Files: All present")
     elif query.data == "progress":
-        await query.message.reply("📊 Progress command sent")
+        await query.message.answer("📊 Progress command sent")
     elif query.data == "missing":
-        await query.message.reply("❌ Missing command sent")
+        await query.message.answer("❌ Missing command sent")
+
 

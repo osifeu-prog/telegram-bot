@@ -16,7 +16,7 @@ async def ref_cmd(message: types.Message):
             select(func.count(User.telegram_id)).where(User.referrer_id == message.from_user.id)
         )
         count = result.scalar()
-    await message.reply(
+    await message.answer(
         f"👥 **Referral System**\n\n"
         f"Your referral link:\n{ref_link}\n\n"
         f"Friends invited: {count}\n"
@@ -42,8 +42,9 @@ async def start_with_ref(message: types.Message):
                     if referrer:
                         referrer.coins += REFERRAL_BONUS
                     await session.commit()
-                    await message.reply("🎉 You were referred! +50 bonus coins!")
+                    await message.answer("🎉 You were referred! +50 bonus coins!")
         except:
             pass
     # Continue with normal start
-    await message.reply("Welcome! Use /daily to get your first reward.")
+    await message.answer("Welcome! Use /daily to get your first reward.")
+

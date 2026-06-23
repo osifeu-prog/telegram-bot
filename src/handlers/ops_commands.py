@@ -12,9 +12,9 @@ def is_admin(msg: types.Message) -> bool:
 @router.message(Command("backup"))
 async def backup_cmd(message: types.Message):
     if not is_admin(message):
-        await message.reply("⛔ Access denied.")
+        await message.answer("⛔ Access denied.")
         return
-    await message.reply("🔄 Creating backup...")
+    await message.answer("🔄 Creating backup...")
     try:
         timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
         filename = f"backups/slh-bot-backup-{timestamp}.zip"
@@ -23,25 +23,25 @@ async def backup_cmd(message: types.Message):
             shell=True, cwd="/app", check=True
         )
         subprocess.run("git add backups/ && git commit -m 'Auto backup' && git push", shell=True, cwd="/app")
-        await message.reply(f"✅ Backup created: {filename}")
+        await message.answer(f"✅ Backup created: {filename}")
     except Exception as e:
-        await message.reply(f"❌ Backup failed: {e}")
+        await message.answer(f"❌ Backup failed: {e}")
 
 @router.message(Command("ask_ai"))
 async def ask_ai_cmd(message: types.Message):
     if not is_admin(message):
-        await message.reply("⛔ Access denied.")
+        await message.answer("⛔ Access denied.")
         return
     prompt = message.text.split(" ", 1)[1] if len(message.text.split()) > 1 else ""
     if not prompt:
-        await message.reply("Usage: /ask_ai <your prompt>")
+        await message.answer("Usage: /ask_ai <your prompt>")
         return
     
-    await message.reply("🤔 Thinking...")
+    await message.answer("🤔 Thinking...")
     
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        await message.reply("❌ GROQ_API_KEY not set.")
+        await message.answer("❌ GROQ_API_KEY not set.")
         return
     
     async with httpx.AsyncClient() as client:
@@ -61,6 +61,7 @@ async def ask_ai_cmd(message: types.Message):
             )
             data = resp.json()
             reply = data["choices"][0]["message"]["content"]
-            await message.reply(f"🤖 **AI Response:**\n\n{reply}")
+            await message.answer(f"🤖 **AI Response:**\n\n{reply}")
         except Exception as e:
-            await message.reply(f"❌ AI Error: {e}")
+            await message.answer(f"❌ AI Error: {e}")
+

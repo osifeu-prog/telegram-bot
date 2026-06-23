@@ -11,12 +11,12 @@ async def demo_deposit_cmd(message: types.Message):
     """Add demo coins for testing  no real USDT required."""
     parts = message.text.split()
     if len(parts) < 2:
-        await message.reply("Usage: /demo_deposit <amount>\nExample: /demo_deposit 100")
+        await message.answer("Usage: /demo_deposit <amount>\nExample: /demo_deposit 100")
         return
     try:
         amount = int(parts[1])
     except ValueError:
-        await message.reply("Invalid amount. Use a number.")
+        await message.answer("Invalid amount. Use a number.")
         return
     
     async with AsyncSessionLocal() as session:
@@ -30,8 +30,9 @@ async def demo_deposit_cmd(message: types.Message):
         user.coins += amount
         await session.commit()
     
-    await message.reply(
+    await message.answer(
         f"✅ {amount} DEMO coins added!\n"
         f"💰 New balance: {user.coins} coins\n\n"
         f"Use /shop or /buy to test purchases."
     )
+
