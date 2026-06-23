@@ -15,6 +15,7 @@ class User(Base):
     is_kyc = Column(Boolean, default=False)
     referrer_id = Column(BigInteger, nullable=True)
     language = Column(String(5), default='en')
+    achievements = Column(Text, default="[]")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Purchase(Base):
@@ -38,4 +39,5 @@ class SystemConfig(Base):
     __tablename__ = "system_config"
     key = Column(String(50), primary_key=True)
     value = Column(String(500))
+
 
