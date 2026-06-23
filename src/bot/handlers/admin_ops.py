@@ -44,17 +44,26 @@ async def deploy_cmd(msg: Message):
     if not is_admin(msg):
         await msg.reply("⛔ Access denied.")
         return
-    hook_url = os.getenv("RAILWAY_DEPLOY_HOOK_URL")
-    if not hook_url:
-        await msg.reply("❌ RAILWAY_DEPLOY_HOOK_URL not set.")
+    github_token = os.getenv("GITHUB_TOKEN")
+    if not github_token:
+        await msg.reply("❌ GITHUB_TOKEN not set.")
         return
+    import httpx
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    data = {"ref": "main"}
     async with httpx.AsyncClient() as client:
-        resp = await client.post(hook_url)
-        if resp.status_code == 200:
-            await msg.reply("🚀 Deploy triggered!")
+        resp = await client.post(
+            "https://api.github.com/repos/osifeu-prog/telegram-bot/deployments",
+            headers=headers,
+            json=data
+        )
+        if resp.status_code == 201:
+            await msg.reply("🚀 Deploy triggered via GitHub!")
         else:
-            await msg.reply(f"❌ Deploy trigger failed (HTTP {resp.status_code})")
-
+            await msg.reply(f"❌ Failed (HTTP {resp.status_code})")
 @router.message(Command("handoff"))
 async def handoff_cmd(msg: Message):
     if not is_admin(msg):
@@ -132,3 +141,4 @@ async def ops_menu(msg: Message):
         "/fix_db  Recreate users table\n"
         "/ops  This menu"
     )
+
