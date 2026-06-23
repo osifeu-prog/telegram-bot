@@ -1,4 +1,4 @@
-﻿import os
+import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -20,6 +20,7 @@ from src.bot.bot import bot
 dp = Dispatcher(storage=storage)
 setup_routers(dp)
 dp.include_router(admin_ops_router)
+# daily_router is already included via setup_routers
 dp.include_router(payments_router)
 
 app = FastAPI()
@@ -39,28 +40,32 @@ async def root():
 
 @app.on_event("startup")
 async def startup_event():
-    # Ensure users table columns exist
     from sqlalchemy import text
     async with engine.begin() as conn:
-        for col_name, col_def in [
-            ("coins", "INTEGER DEFAULT 0"),
-            ("current_streak", "INTEGER DEFAULT 0"),
-            ("last_daily", "TIMESTAMP WITH TIME ZONE"),
-            ("boosts_available", "INTEGER DEFAULT 0"),
-            ("created_at", "TIMESTAMP WITH TIME ZONE DEFAULT now()"),
-        ]:
-            await conn.execute(text(
-                f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
-            ))
-    # Create any missing tables (like purchases)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        # Check if old column balance_slh exists
+        result = await conn.execute(text(
+            "SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='balance_slh'"
+        ))
+        if result.fetchone():
+            # Drop old table completely
+            await conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
+            await conn.run_sync(Base.metadata.create_all)
+            print("Old users table dropped and recreated.")
+        else:
+            # Add missing columns if any
+            for col_name, col_def in [
+                ("coins", "INTEGER DEFAULT 0"),
+                ("current_streak", "INTEGER DEFAULT 0"),
+                ("last_daily", "TIMESTAMP WITH TIME ZONE"),
+                ("boosts_available", "INTEGER DEFAULT 0"),
+                ("created_at", "TIMESTAMP WITH TIME ZONE DEFAULT now()"),
+            ]:
+                await conn.execute(text(
+                    f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {{col_name}} {{col_def}}"
+                ))
     # Set webhook in production
     mode = os.getenv("MODE", "DEV")
     if mode != "DEV":
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
-
-
-
