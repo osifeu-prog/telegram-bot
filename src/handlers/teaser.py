@@ -12,9 +12,6 @@ ADMIN_ID = int(os.getenv("ADMIN_ID", "8789977826"))
 LAUNCH_DATE = datetime(2026, 7, 7, 12, 0, 0, tzinfo=timezone.utc)
 scheduler = AsyncIOScheduler()
 
-# ------------------------------------------------------------
-# COUNTDOWN
-# ------------------------------------------------------------
 def countdown_str():
     now = datetime.now(timezone.utc)
     delta = LAUNCH_DATE - now
@@ -25,9 +22,7 @@ def countdown_str():
     mins, secs = divmod(remainder, 60)
     return f"{days}d {hours}h {mins}m {secs}s"
 
-# ------------------------------------------------------------
-# USER COMMANDS
-# ------------------------------------------------------------
+# ---------- USER COMMANDS ----------
 @router.message(Command("teaser"))
 async def teaser_cmd(message: types.Message):
     async with AsyncSessionLocal() as session:
@@ -87,9 +82,7 @@ async def leaderboard_cmd(message: types.Message):
         lines.append(f"{i}. `{tid}`  {coins} Shards (🔥{streak}d)")
     await message.answer("\n".join(lines))
 
-# ------------------------------------------------------------
-# DAILY REVEAL (randomly every 2‑3 days)
-# ------------------------------------------------------------
+# ---------- DAILY REVEAL (randomly every 2-3 days) ----------
 last_reveal = None
 reveal_list = [
     "We're building something huge! Stay tuned.",
@@ -116,7 +109,7 @@ async def send_daily_reveal(bot):
                 await bot.send_message(uid, f"💡 Daily Reveal: {hint}")
             except:
                 pass
-    # schedule next reveal in 2‑3 days at random hour
+    # Schedule next reveal in 2-3 days at random hour
     next_delay = timedelta(days=random.randint(2, 3), hours=random.randint(0, 23), minutes=random.randint(0, 59))
     scheduler.add_job(send_daily_reveal, 'date', run_date=datetime.now(timezone.utc) + next_delay, args=[bot])
 
@@ -128,9 +121,7 @@ async def hint_cmd(message: types.Message):
     else:
         await message.answer("No hint yet. Stay tuned!")
 
-# ------------------------------------------------------------
-# ADMIN COMMANDS
-# ------------------------------------------------------------
+# ---------- ADMIN COMMANDS ----------
 def is_admin(msg: types.Message) -> bool:
     return msg.from_user.id == ADMIN_ID
 
@@ -193,10 +184,10 @@ async def reveal_cmd(message: types.Message):
                 pass
     await message.answer(f"Reveal sent to {count}/{len(users)} users.")
 
-# ------------------------------------------------------------
-# START SCHEDULER  first reveal in a few minutes (for test)
-# ------------------------------------------------------------
+# ---------- START SCHEDULER (without test job) ----------
 def start_scheduler(bot):
-    # First reveal in 1‑2 minutes (so we can test)
-    scheduler.add_job(send_daily_reveal, 'date', run_date=datetime.now(timezone.utc) + timedelta(minutes=1), args=[bot])
+    # Schedule first reveal only if no jobs exist (prevent duplicates)
+    if not scheduler.get_jobs():
+        next_delay = timedelta(days=random.randint(2, 3), hours=random.randint(0, 23), minutes=random.randint(0, 59))
+        scheduler.add_job(send_daily_reveal, 'date', run_date=datetime.now(timezone.utc) + next_delay, args=[bot])
     scheduler.start()
