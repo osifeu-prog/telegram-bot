@@ -1,28 +1,6 @@
 ﻿{
-  "files": {
-    "daily": true,
-    "payments": true,
-    "mini_app": true,
-    "webhook": true
-  },
-  "features": {
-    "daily_loop": true,
-    "rewards": true,
-    "streak": true,
-    "boost": true,
-    "payments": false,
-    "shop": true,
-    "votes": true
-  },
-  "admin": {
-    "admin_status": true,
-    "check_files": true,
-    "run_tests": false,
-    "deploy_status": true
-  },
-  "progress": {
-    "mvp": 0.85,
-    "v1": 0.60,
-    "v2": 0.15
-  }
+  "files": { "daily": true, "payments": true, "mini_app": true, "webhook": true },
+  "features": { "daily_loop": true, "rewards": true, "streak": true, "boost": true, "payments": false, "shop": true, "votes": true },
+  "admin": { "admin_status": true, "check_files": true, "run_tests": false, "deploy_status": true },
+  "progress": { "mvp": 0.95, "v1": 0.80, "v2": 0.40 }
 }

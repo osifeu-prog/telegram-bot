@@ -13,7 +13,8 @@ class User(Base):
     boosts_available = Column(Integer, default=0)
     wallet_address = Column(String(100), nullable=True)        # ארנק USDT של המשתמש
     role = Column(String(20), default="user")                  # user, verified, admin, founder
-    is_kyc = Column(Boolean, default=False)                    # KYC מאומת
+    is_kyc = Column(Boolean, default=False)
+    referrer_id = Column(BigInteger, nullable=True)  # who referred this user                    # KYC מאומת
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Purchase(Base):
@@ -32,3 +33,4 @@ class SystemConfig(Base):
 
     key = Column(String(50), primary_key=True)
     value = Column(String(500))
+

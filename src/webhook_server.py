@@ -28,6 +28,11 @@ from src.handlers.language import router as language_router
 from src.handlers.menu_system import router as menu_system_router
 from src.handlers.ops_commands import router as ops_commands_router
 from src.handlers.pdf_analyzer import router as pdf_analyzer_router
+from src.handlers.mini_app_improved import router as mini_app_improved_router
+from src.handlers.achievements import router as achievements_router
+from src.handlers.referral import router as referral_router
+from src.handlers.ton_testnet import router as ton_testnet_router
+from src.handlers.kyc import router as kyc_router
 from src.api.mini_app import router as mini_app_router
 from src.bot.bot import bot
 from src.services.notifications import send_daily_reminders
@@ -50,6 +55,11 @@ dp.include_router(language_router)
 dp.include_router(menu_system_router)
 dp.include_router(ops_commands_router)
 dp.include_router(pdf_analyzer_router)
+dp.include_router(mini_app_improved_router)
+dp.include_router(achievements_router)
+dp.include_router(referral_router)
+dp.include_router(ton_testnet_router)
+dp.include_router(kyc_router)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -97,6 +107,7 @@ async def startup_event():
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
+
 
 
 
