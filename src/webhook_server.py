@@ -28,6 +28,8 @@ from src.handlers.language import router as language_router
 from src.handlers.menu_system import router as menu_system_router
 from src.handlers.ops_commands import router as ops_commands_router
 from src.handlers.broadcast import router as broadcast_router
+from src.handlers.groups import router as groups_router
+from src.handlers.test_i18n import router as test_i18n_router
 from src.handlers.pdf_analyzer import router as pdf_analyzer_router
 from src.handlers.kyc import router as kyc_router
 from src.handlers.ton_testnet import router as ton_testnet_router
@@ -57,6 +59,8 @@ dp.include_router(language_router)
 dp.include_router(menu_system_router)
 dp.include_router(ops_commands_router)
 dp.include_router(broadcast_router)
+dp.include_router(groups_router)
+dp.include_router(test_i18n_router)
 dp.include_router(pdf_analyzer_router)
 dp.include_router(kyc_router)
 dp.include_router(ton_testnet_router)
@@ -118,6 +122,8 @@ async def startup_event():
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
+
+
 
 
 
