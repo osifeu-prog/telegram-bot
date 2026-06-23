@@ -15,15 +15,24 @@ from src.bot.handlers.admin_ops import router as admin_ops_router
 from src.handlers.daily import router as daily_router
 from src.handlers.payments import router as payments_router
 from src.handlers.user_commands import router as user_commands_router
+from src.handlers.shop import router as shop_router
+from src.handlers.admin_users import router as admin_users_router
+from src.handlers.admin_economy import router as admin_economy_router
+from src.handlers.devops import router as devops_router
+from src.handlers.governance import router as governance_router
 from src.api.mini_app import router as mini_app_router
 from src.bot.bot import bot
 
 dp = Dispatcher(storage=storage)
 setup_routers(dp)
 dp.include_router(admin_ops_router)
-# daily_router is already included via setup_routers
 dp.include_router(payments_router)
 dp.include_router(user_commands_router)
+dp.include_router(shop_router)
+dp.include_router(admin_users_router)
+dp.include_router(admin_economy_router)
+dp.include_router(devops_router)
+dp.include_router(governance_router)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -44,17 +53,14 @@ async def root():
 async def startup_event():
     from sqlalchemy import text
     async with engine.begin() as conn:
-        # Check if old column balance_slh exists
         result = await conn.execute(text(
             "SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='balance_slh'"
         ))
         if result.fetchone():
-            # Drop old table completely
             await conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
             await conn.run_sync(Base.metadata.create_all)
             print("Old users table dropped and recreated.")
         else:
-            # Add missing columns if any
             for col_name, col_def in [
                 ("coins", "INTEGER DEFAULT 0"),
                 ("current_streak", "INTEGER DEFAULT 0"),
@@ -65,14 +71,8 @@ async def startup_event():
                 await conn.execute(text(
                     f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
                 ))
-    # Set webhook in production
     mode = os.getenv("MODE", "DEV")
     if mode != "DEV":
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
-
-
-
-
-
