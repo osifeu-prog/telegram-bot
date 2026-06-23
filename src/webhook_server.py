@@ -36,6 +36,7 @@ from src.handlers.kyc import router as kyc_router
 from src.handlers.ton_testnet import router as ton_testnet_router
 from src.handlers.referral import router as referral_router
 from src.handlers.teaser import router as teaser_router, start_scheduler
+from src.handlers.tasks_tracker import router as tasks_router
 from src.handlers.help import router as help_router
 from src.handlers.recalc_progress import router as recalc_progress_router
 from src.handlers.achievements import router as achievements_router
@@ -72,6 +73,7 @@ dp.include_router(kyc_router)
 dp.include_router(ton_testnet_router)
 dp.include_router(referral_router)
 dp.include_router(teaser_router)
+    dp.include_router(tasks_router)
 dp.include_router(help_router)
 dp.include_router(recalc_progress_router)
 dp.include_router(achievements_router)
@@ -133,6 +135,7 @@ async def startup_event():
             if current.url != webhook_url:
                 await bot.set_webhook(webhook_url)
     start_scheduler(bot)
+
 
 
 

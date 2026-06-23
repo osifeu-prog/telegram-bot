@@ -47,6 +47,37 @@ async def handle_csv(message: types.Message):
         await session.commit()
     await message.answer(f"✅ Uploaded {count} contacts.")
 
+
+@router.message(Command("import_phones"))
+async def import_phones_cmd(message: types.Message):
+    """Import phone numbers from a pasted list (one per line, or comma separated)."""
+    text = message.text.removeprefix("/import_phones ").strip()
+    if not text:
+        await message.answer("📝 Usage: /import_phones <list of numbers>\nExample: /import_phones +972501234567, +972502345678")
+        return
+    # Split by comma, newline, or whitespace
+    import re
+    phones = re.split(r'[,\n\s]+', text)
+    phones = [p.strip() for p in phones if p.strip()]
+    if not phones:
+        await message.answer("No valid phone numbers found.")
+        return
+    count = 0
+    async with AsyncSessionLocal() as session:
+        for phone in phones:
+            # Basic validation: starts with + or 0, length >= 9
+            if (phone.startswith('+') or phone.startswith('0')) and len(phone) >= 9:
+                contact = Contact(
+                    owner_id=message.from_user.id,
+                    phone=phone,
+                    name=None,
+                    group_name=None
+                )
+                session.add(contact)
+                count += 1
+        await session.commit()
+    await message.answer(f"✅ Imported {count} phone numbers.")
+
 @router.message(Command("contacts_list"))
 async def contacts_list_cmd(message: types.Message):
     async with AsyncSessionLocal() as session:
@@ -61,3 +92,4 @@ async def contacts_list_cmd(message: types.Message):
     for c in contacts:
         lines.append(f"{c.phone}  {c.name or 'N/A'} [{c.group_name or '-'}]")
     await message.answer('\n'.join(lines))
+
