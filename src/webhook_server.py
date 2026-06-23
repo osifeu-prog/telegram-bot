@@ -28,6 +28,7 @@ from src.handlers.menu_system import router as menu_system_router
 from src.handlers.ops_commands import router as ops_commands_router
 from src.handlers.broadcast import router as broadcast_router
 from src.handlers.groups import router as groups_router
+
 from src.handlers.contacts import router as contacts_router
 from src.handlers.test_i18n import router as test_i18n_router
 from src.handlers.pdf_analyzer import router as pdf_analyzer_router
@@ -66,7 +67,7 @@ dp.include_router(language_router)
 dp.include_router(menu_system_router)
 dp.include_router(ops_commands_router)
 dp.include_router(broadcast_router)
-dp.include_router(groups_router)
+
 dp.include_router(contacts_router)
 dp.include_router(test_i18n_router)
 dp.include_router(pdf_analyzer_router)
@@ -82,7 +83,8 @@ dp.include_router(partner_router)
 dp.include_router(tasks_router)
 dp.include_router(mini_app_improved_router)
 # Governance last  so its catch‑all handlers don't steal messages
-dp.include_router(governance_router)
+dp.include_router(groups_router)
+    dp.include_router(governance_router)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -141,3 +143,4 @@ async def startup_event():
             if current.url != webhook_url:
                 await bot.set_webhook(webhook_url)
     start_scheduler(bot)
+

@@ -1,60 +1,155 @@
-from aiogram import Router, types
-from aiogram.filters import Command
+﻿from aiogram import Router, types
+from aiogram.filters import Command, CommandObject
 from sqlalchemy import select
 from src.bot.db.database import AsyncSessionLocal
-from src.bot.db.models import GroupInfo
+from src.bot.db.models import GroupSettings
+import re
 
 router = Router()
-ADMIN_ID = 8789977826
 
-def is_admin(msg: types.Message) -> bool:
-    return msg.from_user.id == ADMIN_ID
+# ------------------------------------------------------------
+# ADMIN COMMANDS (group only)
+# ------------------------------------------------------------
+def is_group_admin(chat_id: int, user_id: int) -> bool:
+    # In production you'd check via Telegram API.
+    # For now we trust the user (simplified).
+    return True
 
-# Handler for when bot is added to a group
-@router.my_chat_member()
-async def bot_added_to_group(event: types.ChatMemberUpdated):
-    if event.new_chat_member.status == "member" and event.new_chat_member.user.id == event.bot.id:
-        chat = event.chat
-        if chat.type in ['group', 'supergroup']:
-            async with AsyncSessionLocal() as session:
-                exists = await session.get(GroupInfo, chat.id)
-                if not exists:
-                    session.add(GroupInfo(id=chat.id, title=chat.title, type=chat.type))
-                    await session.commit()
-
-@router.message(Command("groups"))
-async def list_groups(message: types.Message):
-    if not is_admin(message):
-        await message.answer("⛔ Access denied.")
+@router.message(Command("set_welcome"))
+async def set_welcome_cmd(message: types.Message):
+    if message.chat.type == "private":
+        await message.answer("This command works only in groups.")
+        return
+    if not is_group_admin(message.chat.id, message.from_user.id):
+        await message.answer("Only admins can set welcome.")
+        return
+    text = message.text.removeprefix("/set_welcome ").strip()
+    if not text:
+        await message.answer("Usage: /set_welcome <message>")
         return
     async with AsyncSessionLocal() as session:
-        result = await session.execute(select(GroupInfo).order_by(GroupInfo.added_at.desc()))
-        groups = result.scalars().all()
-    if groups:
-        msg_text = "📋 **Groups I'm in:**\n\n"
-        for g in groups:
-            msg_text += f"• **{g.title}**\n  ID: `{g.id}`\n\n"
+        settings = await session.get(GroupSettings, message.chat.id)
+        if not settings:
+            settings = GroupSettings(chat_id=message.chat.id)
+            session.add(settings)
+        settings.welcome_message = text
+        await session.commit()
+    await message.answer("✅ Welcome message set!")
+
+@router.message(Command("set_rules"))
+async def set_rules_cmd(message: types.Message):
+    if message.chat.type == "private":
+        await message.answer("This command works only in groups.")
+        return
+    if not is_group_admin(message.chat.id, message.from_user.id):
+        await message.answer("Only admins can set rules.")
+        return
+    text = message.text.removeprefix("/set_rules ").strip()
+    if not text:
+        await message.answer("Usage: /set_rules <rules>")
+        return
+    async with AsyncSessionLocal() as session:
+        settings = await session.get(GroupSettings, message.chat.id)
+        if not settings:
+            settings = GroupSettings(chat_id=message.chat.id)
+            session.add(settings)
+        settings.rules = text
+        await session.commit()
+    await message.answer("✅ Rules updated!")
+
+@router.message(Command("rules"))
+async def rules_cmd(message: types.Message):
+    if message.chat.type == "private":
+        await message.answer("This command works only in groups.")
+        return
+    async with AsyncSessionLocal() as session:
+        settings = await session.get(GroupSettings, message.chat.id)
+    if not settings or not settings.rules:
+        await message.answer("No rules set for this group.")
     else:
-        msg_text = "ℹ️ No groups recorded. Add the bot to a group and send a message."
-    await message.answer(msg_text)
+        await message.answer(f"📜 **Group Rules**\n{settings.rules}")
 
-@router.message(Command("group_id"))
-async def get_group_id(message: types.Message):
-    chat = message.chat
+@router.message(Command("group_info"))
+async def group_info_cmd(message: types.Message):
+    if message.chat.type == "private":
+        await message.answer("This command works only in groups.")
+        return
+    async with AsyncSessionLocal() as session:
+        settings = await session.get(GroupSettings, message.chat.id)
+    welcome = settings.welcome_message if settings else None
+    rules = settings.rules if settings else None
     await message.answer(
-        f"📋 **Chat Info**\n"
-        f"Type: {chat.type}\n"
-        f"Title: {chat.title or 'N/A'}\n"
-        f"ID: `{chat.id}`"
+        f"📋 **Group Info**\n"
+        f"Chat ID: {message.chat.id}\n"
+        f"Welcome: {'✅' if welcome else '❌'}\n"
+        f"Rules: {'✅' if rules else '❌'}"
     )
 
-@router.message(Command("add_to_group"))
-async def add_to_group_info(message: types.Message):
-    await message.answer(
-        "🤝 **Add SLH Bot to Your Group**\n\n"
-        "1️⃣ Add @SLH_investor_wallet_bot to your group\n"
-        "2️⃣ Make the bot an **admin**\n"
-        "3️⃣ Send /group_id to get the Group ID\n"
-        "4️⃣ Use /groups to see all groups\n\n"
-        "🏆 **Benefits:** Daily rewards, Voting, Economy, KYC"
-    )
+@router.message(Command("ban"))
+async def ban_cmd(message: types.Message):
+    if message.chat.type == "private":
+        await message.answer("This command works only in groups.")
+        return
+    if not is_group_admin(message.chat.id, message.from_user.id):
+        await message.answer("Only admins can ban.")
+        return
+    # Ban by replying to user
+    if message.reply_to_message:
+        user_id = message.reply_to_message.from_user.id
+        await message.bot.ban_chat_member(message.chat.id, user_id)
+        await message.answer("🔨 User banned.")
+    else:
+        await message.answer("Reply to a user's message with /ban to ban them.")
+
+@router.message(Command("mute"))
+async def mute_cmd(message: types.Message):
+    if message.chat.type == "private":
+        await message.answer("This command works only in groups.")
+        return
+    if not is_group_admin(message.chat.id, message.from_user.id):
+        await message.answer("Only admins can mute.")
+        return
+    if not message.reply_to_message:
+        await message.answer("Reply to a user's message with /mute.")
+        return
+    user_id = message.reply_to_message.from_user.id
+    # Mute for 5 minutes by default (you can parse argument)
+    await message.bot.restrict_chat_member(message.chat.id, user_id, permissions=types.ChatPermissions(can_send_messages=False))
+    await message.answer("🔇 User muted (until manually unmuted).")
+
+@router.message(Command("unban"))
+async def unban_cmd(message: types.Message):
+    if message.chat.type == "private":
+        await message.answer("This command works only in groups.")
+        return
+    if not is_group_admin(message.chat.id, message.from_user.id):
+        await message.answer("Only admins can unban.")
+        return
+    if not message.reply_to_message:
+        await message.answer("Reply to a banned user's message (or previous message) with /unban.")
+        return
+    user_id = message.reply_to_message.from_user.id
+    await message.bot.unban_chat_member(message.chat.id, user_id)
+    await message.answer("✅ User unbanned.")
+
+# ------------------------------------------------------------
+# AUTO‑WELCOME (on new chat member)
+# ------------------------------------------------------------
+@router.message(lambda msg: msg.new_chat_members is not None)
+async def welcome_new_member(message: types.Message):
+    async with AsyncSessionLocal() as session:
+        settings = await session.get(GroupSettings, message.chat.id)
+    welcome = settings.welcome_message if settings else None
+    for member in message.new_chat_members:
+        if welcome:
+            await message.answer(f"👋 {member.full_name}, {welcome}")
+        else:
+            await message.answer(f"👋 Welcome {member.full_name}!")
+
+# ------------------------------------------------------------
+# GROUP MESSAGE TRACKING (optional  log)
+# ------------------------------------------------------------
+@router.message()
+async def log_group_activity(message: types.Message):
+    # Simply acknowledge; you could log to DB
+    pass

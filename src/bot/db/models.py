@@ -59,10 +59,19 @@ class Contact(Base):
     group_name = Column(String(100), nullable=True)  # optional group tag
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+
+class GroupSettings(Base):
+    __tablename__ = "group_settings"
+    chat_id = Column(BigInteger, primary_key=True)
+    welcome_message = Column(Text, nullable=True)
+    rules = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class SystemConfig(Base):
     __tablename__ = "system_config"
     key = Column(String(50), primary_key=True)
     value = Column(String(500))
+
 
 
 
