@@ -1,4 +1,4 @@
-﻿import os
+﻿import os, asyncio
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -25,6 +25,7 @@ from src.handlers.deposits import router as deposits_router
 from src.handlers.profile import router as profile_router
 from src.api.mini_app import router as mini_app_router
 from src.bot.bot import bot
+from src.services.notifications import send_daily_reminders
 
 dp = Dispatcher(storage=storage)
 setup_routers(dp)
@@ -59,7 +60,6 @@ async def root():
 async def startup_event():
     from sqlalchemy import text
     async with engine.begin() as conn:
-        # Add new columns if missing
         for col_name, col_def in [
             ("coins", "INTEGER DEFAULT 0"),
             ("current_streak", "INTEGER DEFAULT 0"),
@@ -73,9 +73,7 @@ async def startup_event():
             await conn.execute(text(
                 f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_def}"
             ))
-        # Create system_config table if not exists
         await conn.run_sync(Base.metadata.create_all, tables=[SystemConfig.__table__])
-        # Set default system wallet if not set
         result = await conn.execute(text(
             "SELECT value FROM system_config WHERE key='system_wallet'"
         ))
@@ -83,12 +81,9 @@ async def startup_event():
             await conn.execute(text(
                 "INSERT INTO system_config (key, value) VALUES ('system_wallet', 'UQCd7XHWGj06cBLlWW_DZUN3TWMGr_oWoVy0G0LkC14gQklj')"
             ))
+    asyncio.create_task(send_daily_reminders())
     mode = os.getenv("MODE", "DEV")
     if mode != "DEV":
         webhook_url = os.getenv("WEBHOOK_URL")
         if webhook_url:
             await bot.set_webhook(webhook_url)
-
-
-
-

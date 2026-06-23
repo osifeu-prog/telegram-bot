@@ -2,7 +2,8 @@
 from aiogram.filters import Command
 from sqlalchemy import select
 from src.bot.db.database import AsyncSessionLocal
-from src.bot.db.models import User, Purchase
+from src.bot.db.models import User, Purchase, SystemConfig
+from src.services.ton import verify_usdt_transfer
 
 router = Router()
 ADMIN_ID = 8789977826
@@ -18,12 +19,17 @@ async def report_deposit_cmd(message: types.Message):
         return
     tx_hash = parts[1]
     try:
-        amount = int(float(parts[2]) * 100)  # Convert to cents
+        amount = int(float(parts[2]) * 100)
     except ValueError:
         await message.reply("Invalid amount.")
         return
-    
+
     async with AsyncSessionLocal() as session:
+        # Get system wallet
+        result = await session.execute(select(SystemConfig).where(SystemConfig.key == "system_wallet"))
+        config = result.scalar_one_or_none()
+        system_wallet = config.value if config else None
+
         purchase = Purchase(
             telegram_id=message.from_user.id,
             item="deposit",
@@ -34,56 +40,79 @@ async def report_deposit_cmd(message: types.Message):
         session.add(purchase)
         await session.commit()
         purchase_id = purchase.id
-    
+
+        # Auto-verify if system wallet is set
+        if system_wallet:
+            try:
+                valid = await verify_usdt_transfer(tx_hash, amount, system_wallet)
+            except Exception:
+                valid = False
+            if valid:
+                purchase.status = "confirmed"
+                result = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
+                user = result.scalar_one_or_none()
+                if user:
+                    coins_to_add = amount // 100 * 100
+                    user.coins += coins_to_add
+                    if not user.is_kyc:
+                        user.is_kyc = True
+                        user.role = "verified"
+                await session.commit()
+                await message.reply(
+                    f"✅ Deposit verified automatically!\n"
+                    f"ID: #{purchase_id}\n"
+                    f"Amount: {amount/100:.2f} USDT → {coins_to_add} coins"
+                )
+                return
+
     await message.reply(
         f"📩 Deposit reported!\n"
         f"ID: #{purchase_id}\n"
         f"TX: `{tx_hash}`\n"
-        f"Amount: {amount/100:.2f} USDT\n\n"
-        f"⏳ Waiting for admin confirmation."
+        f"Amount: {amount/100:.2f} USDT\n"
+        f"⏳ Verification pending. Use /verify_deposit {purchase_id} to check manually."
     )
 
-@router.message(Command("confirm_deposit"))
-async def confirm_deposit_cmd(message: types.Message):
+@router.message(Command("verify_deposit"))
+async def verify_deposit_cmd(message: types.Message):
     if not is_admin(message):
         await message.reply("⛔ Access denied.")
         return
     parts = message.text.split()
     if len(parts) < 2:
-        await message.reply("Usage: /confirm_deposit <purchase_id>")
+        await message.reply("Usage: /verify_deposit <purchase_id>")
         return
     try:
         purchase_id = int(parts[1])
     except ValueError:
         await message.reply("Invalid ID.")
         return
-    
+
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Purchase).where(Purchase.id == purchase_id))
         purchase = result.scalar_one_or_none()
-        if not purchase:
-            await message.reply("Purchase not found.")
+        if not purchase or purchase.status != "pending":
+            await message.reply("Not found or already processed.")
             return
-        if purchase.status != "pending":
-            await message.reply(f"Already {purchase.status}.")
+
+        config = await session.execute(select(SystemConfig).where(SystemConfig.key == "system_wallet"))
+        system_wallet = config.scalar_one_or_none().value if config else None
+        if not system_wallet:
+            await message.reply("System wallet not set.")
             return
-        
-        purchase.status = "confirmed"
-        # Credit user
-        result = await session.execute(select(User).where(User.telegram_id == purchase.telegram_id))
-        user = result.scalar_one_or_none()
-        if user:
-            # 1 USDT = 100 coins
-            coins_to_add = purchase.amount_usdt // 100 * 100
-            user.coins += coins_to_add
-            # Auto-verify if first deposit
-            if not user.is_kyc:
-                user.is_kyc = True
-                user.role = "verified"
-        await session.commit()
-    
-    await message.reply(
-        f"✅ Deposit #{purchase_id} confirmed!\n"
-        f"User: {purchase.telegram_id}\n"
-        f"Amount: {purchase.amount_usdt/100:.2f} USDT"
-    )
+
+        valid = await verify_usdt_transfer(purchase.tx_hash, purchase.amount_usdt, system_wallet)
+        if valid:
+            purchase.status = "confirmed"
+            result = await session.execute(select(User).where(User.telegram_id == purchase.telegram_id))
+            user = result.scalar_one_or_none()
+            if user:
+                coins = purchase.amount_usdt // 100 * 100
+                user.coins += coins
+                if not user.is_kyc:
+                    user.is_kyc = True
+                    user.role = "verified"
+            await session.commit()
+            await message.reply(f"✅ Deposit #{purchase_id} confirmed!")
+        else:
+            await message.reply(f"❌ Verification failed for #{purchase_id}")
