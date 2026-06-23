@@ -7,16 +7,59 @@
 <style>
 body { font-family: system-ui; background: #0f172a; color: #e2e8f0; padding: 1rem; }
 .card { background: #1e293b; border-radius: 1rem; padding: 1rem; margin: 1rem 0; }
+.btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; font-weight: bold; cursor: pointer; margin: 0.5rem; }
+.btn-primary { background: #3b82f6; color: white; }
+.btn-success { background: #10b981; color: white; }
 .leaderboard li { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #334155; }
 .coins { color: #fbbf24; font-weight: bold; }
+.hidden { display: none; }
 </style>
 </head>
 <body>
-<div class="card">
-  <h2>🏆 Top 10</h2>
-  <ul class="leaderboard" id="top-list">Loading...</ul>
+<!-- מסך Onboarding -->
+<div id="onboarding" class="card">
+  <h2>🚀 Welcome to SLH Investor Wallet!</h2>
+  <p>Earn daily rewards, vote on community decisions, and unlock exclusive features.</p>
+  <p>Choose your path:</p>
+  <button class="btn btn-primary" onclick="choosePath('gaming')">🎮 Gaming  Daily tasks & rewards</button>
+  <button class="btn btn-success" onclick="choosePath('community')">🏛️ Community  Voting & governance</button>
 </div>
+
+<!-- מסך לידרבורד (מוסתר עד אחרי Onboarding) -->
+<div id="main" class="hidden">
+  <div class="card">
+    <h2>🏆 Top 10</h2>
+    <ul class="leaderboard" id="top-list">Loading...</ul>
+  </div>
+</div>
+
 <script>
+// בדוק אם המשתמש כבר בחר מסלול (שמור ב-localStorage)
+const savedPath = localStorage.getItem('slh_path');
+if (savedPath) {
+  document.getElementById('onboarding').classList.add('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  loadTop();
+}
+
+async function choosePath(path) {
+  // שמירה מקומית + שליחה לשרת
+  localStorage.setItem('slh_path', path);
+  // שליחת בחירה לשרת (API פשוט)
+  try {
+    await fetch('/api/set_path', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegram_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 8789977826, path: path })
+    });
+  } catch(e) { console.error(e); }
+  // מתן פרס ראשון
+  alert('🎁 You received 50 Genesis Shards!');
+  document.getElementById('onboarding').classList.add('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  loadTop();
+}
+
 async function loadTop() {
   try {
     const resp = await fetch('/api/top?limit=10');
@@ -28,8 +71,6 @@ async function loadTop() {
     ).join('');
   } catch(e) { document.getElementById('top-list').innerHTML = '<li>Error loading leaderboard</li>'; }
 }
-loadTop();
-setInterval(loadTop, 30000);
 </script>
 </body>
 </html>

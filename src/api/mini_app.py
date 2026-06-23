@@ -4,6 +4,23 @@ from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import User
 
 router = APIRouter()
+@router.post("/api/set_path")
+async def set_path(data: dict):
+    telegram_id = data.get("telegram_id")
+    path = data.get("path")
+    if not telegram_id or path not in ("gaming", "community"):
+        return {"error": "Invalid data"}
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User).where(User.telegram_id == telegram_id))
+        user = result.scalar_one_or_none()
+        if not user:
+            user = User(telegram_id=telegram_id, coins=50, role=path)
+            session.add(user)
+        else:
+            user.role = path
+            user.coins += 50
+        await session.commit()
+    return {"status": "ok", "coins": user.coins}
 
 @router.get("/api/user/{user_id}")
 async def get_user(user_id: int):
@@ -32,3 +49,4 @@ async def get_top(limit: int = Query(default=10, le=50)):
         {"rank": i+1, "telegram_id": tid, "coins": coins, "streak": streak}
         for i, (tid, coins, streak) in enumerate(rows)
     ]
+
