@@ -1,87 +1,150 @@
-<!DOCTYPE html>
-<html>
+﻿<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SLH Rewards</title>
+    <title>SLH Bot Dashboard</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 16px; background: #f5f5f5; }
-        .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        button { background: #007bff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; width: 100%; }
-        button:disabled { background: #ccc; }
-        .coins { font-size: 32px; font-weight: bold; }
-        .streak { color: orange; font-size: 18px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #1a1a2e; color: #eee; padding: 16px; }
+        .card { background: #16213e; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .card h2 { font-size: 16px; margin-bottom: 8px; color: #e94560; }
+        .stat { font-size: 28px; font-weight: bold; color: #f5c518; }
+        .label { font-size: 12px; color: #aaa; }
+        .row { display: flex; gap: 12px; }
+        .col { flex: 1; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .btn-primary { background: #e94560; color: white; }
+        .btn-secondary { background: #0f3460; color: white; }
+        .btn-success { background: #2ecc71; color: white; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .list-item { padding: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
+        .badge { background: #e94560; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
     </style>
 </head>
 <body>
     <div id="app">
+        <!-- User Header -->
         <div class="card">
-            <div>?? Coins</div>
-            <div class="coins" id="coins">...</div>
-            <div class="streak" id="streak">?? 0 days</div>
+            <h2 id="greeting">👋 Loading...</h2>
+            <div class="row">
+                <div class="col">
+                    <div class="stat" id="coins">0</div>
+                    <div class="label">💰 Coins</div>
+                </div>
+                <div class="col">
+                    <div class="stat" id="streak">0</div>
+                    <div class="label">🔥 Streak</div>
+                </div>
+            </div>
         </div>
+
+        <!-- Daily Reward -->
         <div class="card">
-            <button id="dailyBtn" onclick="claimDaily()">?? Claim Daily Reward</button>
+            <h2>🎁 Daily Reward</h2>
+            <button class="btn-primary" id="dailyBtn" onclick="claimDaily()">Claim Daily Reward</button>
+            <p style="margin-top:8px;font-size:12px;color:#aaa;" id="dailyMsg"></p>
         </div>
+
+        <!-- Shop -->
         <div class="card">
-            <h3>?? Shop</h3>
-            <button id="boostBtn" onclick="buyBoost()">? Streak Boost (100 Stars)</button>
+            <h2>🛒 Quick Shop</h2>
+            <button class="btn-secondary" onclick="buyBoost()">⚡ Buy Streak Boost (100 coins)</button>
+            <p style="margin-top:8px;font-size:12px;color:#aaa;" id="shopMsg"></p>
+        </div>
+
+        <!-- Top 10 -->
+        <div class="card">
+            <h2>🏆 Top 10</h2>
+            <div id="topList">Loading...</div>
+        </div>
+
+        <!-- Profile Link -->
+        <div class="card">
+            <button class="btn-success" onclick="openProfile()">👤 View Full Profile</button>
+        </div>
+
+        <!-- DEMO Deposit -->
+        <div class="card">
+            <h2>🧪 Test Mode</h2>
+            <button class="btn-secondary" onclick="demoDeposit()">💉 Add 500 DEMO Coins</button>
         </div>
     </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        const userId = tg.initDataUnsafe.user?.id;
+        const userId = tg.initDataUnsafe?.user?.id;
         if (!userId) {
-            document.body.innerHTML = 'Please open via Telegram bot';
-            throw new Error('No user id');
+            document.getElementById('greeting').innerText = '❌ Please open via Telegram Bot';
+            throw new Error('No user');
         }
 
-        async function api(path, method='GET', body) {
-            const res = await fetch(path, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: body ? JSON.stringify(body) : undefined
-            });
+        const API = '/api';
+
+        async function apiCall(path, method='GET', body=null) {
+            const opts = { method, headers: { 'Content-Type': 'application/json' } };
+            if (body) opts.body = JSON.stringify(body);
+            const res = await fetch(API + path, opts);
             return res.json();
         }
 
         async function loadUser() {
-            const data = await api(`/api/user/${userId}`);
-            document.getElementById('coins').innerText = data.coins;
-            document.getElementById('streak').innerText = `?? ${data.streak} days`;
-            document.getElementById('dailyBtn').disabled = !data.can_claim;
+            const user = await apiCall(`/user/${userId}`);
+            document.getElementById('greeting').innerText = `👋 Welcome!`;
+            document.getElementById('coins').innerText = user.coins || 0;
+            document.getElementById('streak').innerText = (user.streak || 0) + ' days';
+            document.getElementById('dailyBtn').disabled = !user.can_claim;
+            document.getElementById('dailyMsg').innerText = user.can_claim ? '' : '⏳ Already claimed today';
+        }
+
+        async function loadTop() {
+            const top = await apiCall('/top');
+            const html = top.map((u, i) =>
+                `<div class="list-item"><span>${i+1}. ${u.telegram_id}</span><span>${u.coins} 🪙</span></div>`
+            ).join('');
+            document.getElementById('topList').innerHTML = html || 'No users yet.';
         }
 
         async function claimDaily() {
-            const res = await api('/api/daily/claim', 'POST', { telegram_id: userId });
+            const res = await apiCall('/daily/claim', 'POST', { telegram_id: userId });
             if (res.error) {
-                alert(res.error);
+                document.getElementById('dailyMsg').innerText = '❌ ' + res.error;
                 return;
             }
             document.getElementById('coins').innerText = res.coins;
-            document.getElementById('streak').innerText = `?? ${res.streak} days`;
+            document.getElementById('streak').innerText = res.streak + ' days';
             document.getElementById('dailyBtn').disabled = true;
+            document.getElementById('dailyMsg').innerText = `✅ +${res.reward} coins!`;
         }
 
         async function buyBoost() {
-            const res = await api('/api/store/buy', 'POST', { telegram_id: userId, item: 'boost' });
-            if (res.invoice_url) {
-                tg.openInvoice(res.invoice_url, (status) => {
-                    if (status === 'paid') {
-                        alert('Payment successful!');
-                        loadUser();
-                    } else {
-                        alert('Payment failed or cancelled');
-                    }
-                });
-            } else if (res.error) {
-                alert(res.error);
+            const res = await apiCall('/store/buy', 'POST', { telegram_id: userId, item: 'boost' });
+            if (res.error) {
+                document.getElementById('shopMsg').innerText = '❌ ' + res.error;
+                return;
             }
+            document.getElementById('shopMsg').innerText = '✅ Boost purchased!';
+            loadUser();
+        }
+
+        async function demoDeposit() {
+            const res = await apiCall('/demo/deposit', 'POST', { telegram_id: userId, amount: 500 });
+            if (res.error) {
+                alert('Error: ' + res.error);
+                return;
+            }
+            document.getElementById('coins').innerText = res.coins;
+            alert('✅ 500 DEMO coins added!');
+        }
+
+        function openProfile() {
+            tg.openTelegramLink('https://t.me/SLH_investor_wallet_bot');
         }
 
         loadUser();
+        loadTop();
     </script>
 </body>
 </html>
