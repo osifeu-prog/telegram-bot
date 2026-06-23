@@ -6,7 +6,7 @@ from src.bot.db.models import SystemConfig
 
 router = Router()
 
-TON_TESTNET_WALLET = "UQ...YOUR_REAL_TESTNET_WALLET"  # Replace with your testnet wallet
+TON_TESTNET_WALLET = "UQ___________YOUR_WALLET___________"  # Replace with your testnet wallet
 
 @router.message(Command("testnet_wallet"))
 async def testnet_wallet(message: types.Message):
@@ -40,5 +40,6 @@ async def testnet_deposit(message: types.Message):
             await message.answer(f"✅ Testnet deposit approved! +{amount} coins")
         else:
             await message.answer("User not found.")
+
 
 
