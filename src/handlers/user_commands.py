@@ -3,6 +3,8 @@ from aiogram.filters import Command
 from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import User, Contact
 from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
+import logging
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 import uuid, csv, io, re
 
@@ -10,15 +12,27 @@ router = Router()
 
 @router.message(Command("start"))
 async def start_cmd(message: types.Message):
-    # Register on first contact; ON CONFLICT keeps repeated /start calls
-    # idempotent and does not overwrite existing balances or preferences.
+    logger = logging.getLogger(__name__)
+    telegram_id = message.from_user.id
+
     async with AsyncSessionLocal() as session:
-        await session.execute(
-            pg_insert(User)
-            .values(telegram_id=message.from_user.id)
-            .on_conflict_do_nothing(index_elements=[User.telegram_id])
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
         )
-        await session.commit()
+        user = result.scalar_one_or_none()
+        if user is None:
+            session.add(User(telegram_id=telegram_id))
+            try:
+                await session.commit()
+                logger.info("New Telegram user registered through /start")
+            except IntegrityError:
+                # Another concurrent /start may have inserted this primary key.
+                await session.rollback()
+                result = await session.execute(
+                    select(User).where(User.telegram_id == telegram_id)
+                )
+                if result.scalar_one_or_none() is None:
+                    raise
 
     kb = types.ReplyKeyboardMarkup(keyboard=[
         [types.KeyboardButton(text="🏠 Home"), types.KeyboardButton(text="📊 Stats")],
