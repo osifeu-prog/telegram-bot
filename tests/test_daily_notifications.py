@@ -2,7 +2,7 @@ import os
 import unittest
 from datetime import datetime, timezone, timedelta
 
-os.environ.setdefault("BOT_TOKEN", "123456:TEST_TOKEN")
+os.environ.setdefault("BOT_TOKEN", "123456:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi")
 
 from src.services.notifications import get_daily_reminder_users, utc_day_start
 
