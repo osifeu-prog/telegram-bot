@@ -5,7 +5,6 @@ from src.bot.db.models import User, Contact
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 import logging
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 import uuid, csv, io, re
 
 router = Router()
