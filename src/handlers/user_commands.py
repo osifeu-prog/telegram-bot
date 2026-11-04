@@ -1,14 +1,38 @@
-﻿from aiogram import Router, types
+from aiogram import Router, types
 from aiogram.filters import Command
 from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import User, Contact
 from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
+import logging
 import uuid, csv, io, re
 
 router = Router()
 
 @router.message(Command("start"))
 async def start_cmd(message: types.Message):
+    logger = logging.getLogger(__name__)
+    telegram_id = message.from_user.id
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if user is None:
+            session.add(User(telegram_id=telegram_id))
+            try:
+                await session.commit()
+                logger.info("New Telegram user registered through /start")
+            except IntegrityError:
+                # Another concurrent /start may have inserted this primary key.
+                await session.rollback()
+                result = await session.execute(
+                    select(User).where(User.telegram_id == telegram_id)
+                )
+                if result.scalar_one_or_none() is None:
+                    raise
+
     kb = types.ReplyKeyboardMarkup(keyboard=[
         [types.KeyboardButton(text="🏠 Home"), types.KeyboardButton(text="📊 Stats")],
         [types.KeyboardButton(text="🛒 Shop"), types.KeyboardButton(text="💼 Wallet")],
