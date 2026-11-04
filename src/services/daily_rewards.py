@@ -30,15 +30,27 @@ async def claim_daily_reward(session, telegram_id: int, now=None):
     now = now or datetime.now(timezone.utc)
     today = utc_day(now)
 
-    await session.execute(
-        pg_insert(User)
-        .values(
-            telegram_id=telegram_id,
-            coins=0,
-            current_streak=0,
+    if session.bind.dialect.name == "postgresql":
+        await session.execute(
+            pg_insert(User)
+            .values(
+                telegram_id=telegram_id,
+                coins=0,
+                current_streak=0,
+            )
+            .on_conflict_do_nothing(index_elements=[User.telegram_id])
         )
-        .on_conflict_do_nothing(index_elements=[User.telegram_id])
-    )
+    else:
+        existing_user = await session.get(User, telegram_id)
+        if existing_user is None:
+            session.add(
+                User(
+                    telegram_id=telegram_id,
+                    coins=0,
+                    current_streak=0,
+                )
+            )
+            await session.flush()
 
     result = await session.execute(
         select(User)
