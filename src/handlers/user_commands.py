@@ -1,14 +1,25 @@
-﻿from aiogram import Router, types
+from aiogram import Router, types
 from aiogram.filters import Command
 from src.bot.db.database import AsyncSessionLocal
 from src.bot.db.models import User, Contact
 from sqlalchemy import select, func
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 import uuid, csv, io, re
 
 router = Router()
 
 @router.message(Command("start"))
 async def start_cmd(message: types.Message):
+    # Register on first contact; ON CONFLICT keeps repeated /start calls
+    # idempotent and does not overwrite existing balances or preferences.
+    async with AsyncSessionLocal() as session:
+        await session.execute(
+            pg_insert(User)
+            .values(telegram_id=message.from_user.id)
+            .on_conflict_do_nothing(index_elements=[User.telegram_id])
+        )
+        await session.commit()
+
     kb = types.ReplyKeyboardMarkup(keyboard=[
         [types.KeyboardButton(text="🏠 Home"), types.KeyboardButton(text="📊 Stats")],
         [types.KeyboardButton(text="🛒 Shop"), types.KeyboardButton(text="💼 Wallet")],
